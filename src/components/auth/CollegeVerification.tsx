@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -27,9 +27,9 @@ export const CollegeVerification = ({ onVerificationComplete }: CollegeVerificat
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  useState(() => {
+  useEffect(() => {
     fetchInstitutes();
-  });
+  }, []);
 
   const fetchInstitutes = async () => {
     try {
