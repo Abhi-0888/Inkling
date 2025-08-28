@@ -25,6 +25,9 @@ export const postService = {
       if (visibility === 'campus' && instituteId) {
         query = query.eq('institute_id', instituteId);
       }
+      
+      // Filter by section (default to 'feed')
+      query = query.eq('section', 'feed');
 
       const { data: posts, error } = await query;
 
@@ -44,7 +47,7 @@ export const postService = {
     }
   },
 
-  async createPost(content: string, kind: 'text' | 'image' | 'poll' = 'text', visibility: 'campus' | 'global' = 'campus', images: string[] = []): Promise<Post | null> {
+  async createPost(content: string, kind: 'text' | 'image' | 'poll' = 'text', visibility: 'campus' | 'global' = 'campus', images: string[] = [], section: 'feed' | 'dark_desire' = 'feed'): Promise<Post | null> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
@@ -65,7 +68,8 @@ export const postService = {
           kind,
           content,
           images,
-          visibility
+          visibility,
+          section
         })
         .select()
         .single();
@@ -156,6 +160,36 @@ export const postService = {
       return data || [];
     } catch (error) {
       console.error('Error fetching comments:', error);
+      return [];
+    }
+  },
+
+  async getDarkDesirePosts(limit: number = 20, offset: number = 0): Promise<PostWithStats[]> {
+    try {
+      const { data: posts, error } = await supabase
+        .from('posts')
+        .select(`
+          *,
+          reactions(count),
+          comments(count)
+        `)
+        .eq('section', 'dark_desire')
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      if (error) throw error;
+
+      // For now, return mock data structure until we have the proper RPC function
+      return (posts || []).map(post => ({
+        ...post,
+        like_count: Math.floor(Math.random() * 30),
+        comment_count: Math.floor(Math.random() * 15),
+        user_has_liked: false,
+        user_has_secret_liked: false,
+      }));
+    } catch (error) {
+      console.error('Error fetching dark desire posts:', error);
       return [];
     }
   }

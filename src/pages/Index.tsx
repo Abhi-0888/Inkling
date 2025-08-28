@@ -5,6 +5,10 @@ import { AgeGate } from '@/components/auth/AgeGate';
 import { CollegeVerification } from '@/components/auth/CollegeVerification';
 import { SignInForm } from '@/components/SignInForm';
 import { Feed } from '@/components/feed/Feed';
+import { DarkDesire } from '@/components/sections/DarkDesire';
+import { BlindDate } from '@/components/sections/BlindDate';
+import { Matching } from '@/components/sections/Matching';
+import { Chatting } from '@/components/sections/Chatting';
 import { BottomNav } from '@/components/layout/BottomNav';
 
 const Index = () => {
@@ -25,30 +29,10 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background">
         {activeTab === 'feed' && <Feed onPostClick={() => {}} />}
-        {activeTab === 'vibes' && (
-          <div className="flex-1 flex items-center justify-center pb-20">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold mb-4">Vibes</h2>
-              <p className="text-muted-foreground">Secret likes and matches coming soon!</p>
-            </div>
-          </div>
-        )}
-        {activeTab === 'matches' && (
-          <div className="flex-1 flex items-center justify-center pb-20">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold mb-4">Matches</h2>
-              <p className="text-muted-foreground">Your private chats will appear here!</p>
-            </div>
-          </div>
-        )}
-        {activeTab === 'settings' && (
-          <div className="flex-1 flex items-center justify-center pb-20">
-            <div className="text-center">
-              <h2 className="text-2xl font-bold mb-4">Settings</h2>
-              <p className="text-muted-foreground">Account settings coming soon!</p>
-            </div>
-          </div>
-        )}
+        {activeTab === 'dark-desire' && <DarkDesire />}
+        {activeTab === 'blind-date' && <BlindDate />}
+        {activeTab === 'matching' && <Matching />}
+        {activeTab === 'chatting' && <Chatting />}
         <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
     );

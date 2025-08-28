@@ -10,9 +10,10 @@ interface BottomNavProps {
 export const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
   const tabs = [
     { id: 'feed', icon: Home, label: 'Feed' },
-    { id: 'vibes', icon: Heart, label: 'Vibes' },
-    { id: 'matches', icon: MessageCircle, label: 'Matches' },
-    { id: 'settings', icon: Settings, label: 'Settings' },
+    { id: 'dark-desire', icon: Heart, label: 'Dark' },
+    { id: 'blind-date', icon: MessageCircle, label: 'Blind' },
+    { id: 'matching', icon: Settings, label: 'Match' },
+    { id: 'chatting', icon: MessageCircle, label: 'Chat' },
   ];
 
   return (
