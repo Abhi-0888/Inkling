@@ -1,13 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User as SupabaseUser } from '@supabase/supabase-js';
-import { supabase, User } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
+import { Database } from '@/integrations/supabase/types';
 import { ensureBasicData } from '@/utils/seedData';
 
 interface AuthContextType {
   user: SupabaseUser | null;
-  userProfile: User | null;
+  userProfile: Database['public']['Tables']['users']['Row'] | null;
   loading: boolean;
-  signUp: (email: string, password: string, instituteId: string, gradYear: number) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -24,7 +25,7 @@ export const useAuth = () => {
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [userProfile, setUserProfile] = useState<User | null>(null);
+  const [userProfile, setUserProfile] = useState<Database['public']['Tables']['users']['Row'] | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -69,28 +70,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signUp = async (email: string, password: string, instituteId: string, gradYear: number) => {
+  const signUp = async (email: string, password: string) => {
+    const redirectUrl = `${window.location.origin}/`;
+    
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: redirectUrl
+      }
     });
 
     if (error) throw error;
-
-    if (data.user) {
-      // Create user profile
-      const { error: profileError } = await supabase
-        .from('users')
-        .insert({
-          id: data.user.id,
-          email,
-          institute_id: instituteId,
-          grad_year: gradYear,
-          age_verified: true, // Will be properly verified in real implementation
-        });
-
-      if (profileError) throw profileError;
-    }
   };
 
   const signIn = async (email: string, password: string) => {

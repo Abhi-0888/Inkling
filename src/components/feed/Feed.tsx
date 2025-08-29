@@ -4,7 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Sparkles, TrendingUp } from 'lucide-react';
 import { PostCard } from './PostCard';
 import { PostComposer } from './PostComposer';
-import { supabase, Post, Reaction } from '@/lib/supabase';
+import { postService, PostWithStats } from '@/services/postService';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
@@ -13,7 +14,7 @@ interface FeedProps {
 }
 
 export const Feed = ({ onPostClick }: FeedProps) => {
-  const [posts, setPosts] = useState<(Post & { reactions: Reaction[]; comments_count: number; user_reaction?: Reaction })[]>([]);
+  const [posts, setPosts] = useState<PostWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [showComposer, setShowComposer] = useState(false);
   const [activeTab, setActiveTab] = useState('foryou');
@@ -29,32 +30,8 @@ export const Feed = ({ onPostClick }: FeedProps) => {
 
     setLoading(true);
     try {
-      let query = supabase
-        .from('posts')
-        .select(`
-          *,
-          reactions(id, type, user_id),
-          comments(id)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (activeTab === 'campus') {
-        query = query.eq('institute_id', userProfile.institute_id);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      const postsWithCounts = data?.map(post => ({
-        ...post,
-        comments_count: post.comments?.length || 0,
-        user_reaction: post.reactions?.find((r: Reaction) => r.user_id === userProfile.id),
-        reactions: post.reactions || []
-      })) || [];
-
-      setPosts(postsWithCounts);
+      const fetchedPosts = await postService.getFeedPosts();
+      setPosts(fetchedPosts);
     } catch (error) {
       console.error('Error fetching posts:', error);
       toast({
@@ -68,40 +45,22 @@ export const Feed = ({ onPostClick }: FeedProps) => {
   };
 
   const handleLike = async (postId: string) => {
-    if (!userProfile) return;
-
     try {
-      const post = posts.find(p => p.id === postId);
-      const existingReaction = post?.user_reaction;
-
-      if (existingReaction) {
-        // Unlike
-        const { error } = await supabase
-          .from('reactions')
-          .delete()
-          .eq('id', existingReaction.id);
-
-        if (error) throw error;
-      } else {
-        // Like
-        const { error } = await supabase
-          .from('reactions')
-          .insert({
-            post_id: postId,
-            user_id: userProfile.id,
-            type: 'like'
-          });
-
-        if (error) throw error;
-      }
-
-      fetchPosts(); // Refresh posts
+      const newLikeState = await postService.toggleLike(postId);
+      setPosts(posts.map(post => 
+        post.id === postId 
+          ? { 
+              ...post, 
+              user_has_liked: newLikeState,
+              like_count: newLikeState ? post.like_count + 1 : post.like_count - 1
+            }
+          : post
+      ));
     } catch (error) {
-      console.error('Error toggling like:', error);
       toast({
         title: "Error",
         description: "Failed to update like. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -223,10 +182,14 @@ export const Feed = ({ onPostClick }: FeedProps) => {
             posts.map(post => (
               <PostCard
                 key={post.id}
-                post={post}
-                onLike={handleLike}
+                post={{
+                  ...post,
+                  reactions: [],
+                  comments_count: post.comment_count
+                }}
+                onLike={() => handleLike(post.id)}
                 onComment={onPostClick}
-                onSecretLike={handleSecretLike}
+                onSecretLike={() => handleSecretLike(post.id)}
               />
             ))
           )}
@@ -238,6 +201,7 @@ export const Feed = ({ onPostClick }: FeedProps) => {
         <PostComposer
           onClose={() => setShowComposer(false)}
           onPostCreated={fetchPosts}
+          section="feed"
         />
       )}
     </div>

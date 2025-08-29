@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { LandingPage } from '@/pages/LandingPage';
 import { AgeGate } from '@/components/auth/AgeGate';
-import { CollegeVerification } from '@/components/auth/CollegeVerification';
+import { SignUpForm } from '@/components/auth/SignUpForm';
 import { SignInForm } from '@/components/SignInForm';
 import { Feed } from '@/components/feed/Feed';
 import { DarkDesire } from '@/components/sections/DarkDesire';
@@ -13,7 +13,7 @@ import { BottomNav } from '@/components/layout/BottomNav';
 
 const Index = () => {
   const { user, userProfile, loading, signUp } = useAuth();
-  const [onboardingStep, setOnboardingStep] = useState<'landing' | 'signin' | 'age-gate' | 'verification'>('landing');
+  const [onboardingStep, setOnboardingStep] = useState<'landing' | 'signin' | 'age-gate' | 'signup'>('landing');
   const [activeTab, setActiveTab] = useState('feed');
 
   if (loading) {
@@ -59,21 +59,15 @@ const Index = () => {
   if (onboardingStep === 'age-gate') {
     return (
       <AgeGate
-        onContinue={() => setOnboardingStep('verification')}
+        onContinue={() => setOnboardingStep('signup')}
       />
     );
   }
 
-  if (onboardingStep === 'verification') {
+  if (onboardingStep === 'signup') {
     return (
-      <CollegeVerification
-        onVerificationComplete={async (email, password, instituteId, gradYear) => {
-          try {
-            await signUp(email, password, instituteId, gradYear);
-          } catch (error) {
-            console.error('Signup error:', error);
-          }
-        }}
+      <SignUpForm
+        onHaveAccount={() => setOnboardingStep('signin')}
       />
     );
   }

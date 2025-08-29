@@ -1,22 +1,10 @@
-import { createClient } from '@supabase/supabase-js';
+// Re-export the supabase client from integrations
+export { supabase } from '@/integrations/supabase/client';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project-ref.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key';
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
-  }
-});
-
-// Database types
+// Database types  
 export interface User {
   id: string;
   email: string;
-  institute_id: string;
-  grad_year: number;
   age_verified: boolean;
   created_at: string;
   updated_at: string;
@@ -33,7 +21,7 @@ export interface Institute {
 export interface Post {
   id: string;
   author_id: string;
-  institute_id: string;
+  section: 'feed' | 'dark_desire';
   kind: 'text' | 'image' | 'poll';
   content: string;
   images: string[];
