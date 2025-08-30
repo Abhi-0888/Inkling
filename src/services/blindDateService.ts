@@ -3,7 +3,10 @@ import { Database } from '@/integrations/supabase/types';
 
 type BlindDate = Database['public']['Tables']['blind_dates']['Row'];
 
-export interface BlindDateSession extends BlindDate {}
+export interface BlindDateSession extends BlindDate {
+  status?: 'active' | 'ended' | 'expired';
+  expires_at?: string;
+}
 
 export const blindDateService = {
   async joinQueue(): Promise<BlindDateSession | null> {
@@ -117,5 +120,25 @@ export const blindDateService = {
       console.error('Error sending message:', error);
       throw error;
     }
+  },
+
+  async getMessages(sessionId: string): Promise<any[]> {
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('match_id', sessionId)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error getting messages:', error);
+      return [];
+    }
+  },
+
+  async findMatch(): Promise<BlindDateSession | null> {
+    return await this.joinQueue();
   }
 };

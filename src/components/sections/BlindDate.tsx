@@ -12,6 +12,9 @@ interface BlindDateSession {
   status: 'active' | 'ended' | 'expired';
   expires_at: string;
   created_at: string;
+  active_until: string;
+  user_a_id: string | null;
+  user_b_id: string | null;
 }
 
 export const BlindDate = () => {
@@ -49,7 +52,13 @@ export const BlindDate = () => {
   const checkActiveSession = async () => {
     try {
       const session = await blindDateService.getActiveSession();
-      setCurrentSession(session);
+      if (session) {
+        setCurrentSession({
+          ...session,
+          status: 'active',
+          expires_at: session.active_until
+        });
+      }
     } catch (error) {
       console.error('Error checking active session:', error);
     }
@@ -60,7 +69,11 @@ export const BlindDate = () => {
     try {
       const session = await blindDateService.findMatch();
       if (session) {
-        setCurrentSession(session);
+        setCurrentSession({
+          ...session,
+          status: 'active',
+          expires_at: session.active_until
+        });
         toast({
           title: "Match found!",
           description: "You've been paired with someone. Chat expires in 24 hours.",
@@ -74,7 +87,11 @@ export const BlindDate = () => {
         const pollInterval = setInterval(async () => {
           const newSession = await blindDateService.getActiveSession();
           if (newSession) {
-            setCurrentSession(newSession);
+            setCurrentSession({
+              ...newSession,
+              status: 'active',
+              expires_at: newSession.active_until
+            });
             setIsSearching(false);
             clearInterval(pollInterval);
             toast({

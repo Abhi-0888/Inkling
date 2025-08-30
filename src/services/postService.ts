@@ -22,8 +22,9 @@ export const postService = {
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
-      if (visibility === 'campus' && instituteId) {
-        query = query.eq('institute_id', instituteId);
+      // Filter by visibility if needed
+      if (visibility === 'campus') {
+        query = query.eq('visibility', 'campus');
       }
       
       // Filter by section (default to 'feed')
@@ -36,11 +37,12 @@ export const postService = {
       // For now, return mock data structure until we have the proper RPC function
       return (posts || []).map(post => ({
         ...post,
+        section: post.section as 'feed' | 'dark_desire',
         like_count: Math.floor(Math.random() * 50),
         comment_count: Math.floor(Math.random() * 20),
         user_has_liked: false,
         user_has_secret_liked: false,
-      }));
+      })) as PostWithStats[];
     } catch (error) {
       console.error('Error fetching feed posts:', error);
       return [];
@@ -52,19 +54,12 @@ export const postService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const { data: userProfile } = await supabase
-        .from('users')
-        .select('institute_id')
-        .eq('id', user.id)
-        .single();
-
-      if (!userProfile) throw new Error('User profile not found');
+      // User is authenticated, proceed with post creation
 
       const { data, error } = await supabase
         .from('posts')
         .insert({
           author_id: user.id,
-          institute_id: userProfile.institute_id,
           kind,
           content,
           images,
@@ -75,7 +70,7 @@ export const postService = {
         .single();
 
       if (error) throw error;
-      return data;
+      return data as Post;
     } catch (error) {
       console.error('Error creating post:', error);
       throw error;
@@ -183,11 +178,12 @@ export const postService = {
       // For now, return mock data structure until we have the proper RPC function
       return (posts || []).map(post => ({
         ...post,
+        section: post.section as 'feed' | 'dark_desire',
         like_count: Math.floor(Math.random() * 30),
         comment_count: Math.floor(Math.random() * 15),
         user_has_liked: false,
         user_has_secret_liked: false,
-      }));
+      })) as PostWithStats[];
     } catch (error) {
       console.error('Error fetching dark desire posts:', error);
       return [];

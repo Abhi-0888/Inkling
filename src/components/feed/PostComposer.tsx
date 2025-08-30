@@ -44,7 +44,7 @@ export const PostComposer = ({
 
     setLoading(true);
     try {
-      await postService.createPost(content.trim(), section);
+      await postService.createPost(content.trim(), 'text', visibility, [], section);
 
       toast({
         title: "Posted successfully",
