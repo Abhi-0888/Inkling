@@ -18,15 +18,15 @@ export const Feed = ({ onPostClick }: FeedProps) => {
   const [loading, setLoading] = useState(true);
   const [showComposer, setShowComposer] = useState(false);
   const [activeTab, setActiveTab] = useState('foryou');
-  const { userProfile } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
 
   useEffect(() => {
     fetchPosts();
-  }, [activeTab, userProfile]);
+  }, [activeTab, user]);
 
   const fetchPosts = async () => {
-    if (!userProfile) return;
+    if (!user) return;
 
     setLoading(true);
     try {
@@ -66,7 +66,7 @@ export const Feed = ({ onPostClick }: FeedProps) => {
   };
 
   const handleSecretLike = async (postId: string) => {
-    if (!userProfile) return;
+    if (!user) return;
 
     try {
       const post = posts.find(p => p.id === postId);
@@ -75,7 +75,7 @@ export const Feed = ({ onPostClick }: FeedProps) => {
       const { error } = await supabase
         .from('secret_likes')
         .insert({
-          source_user_id: userProfile.id,
+          source_user_id: user.id,
           target_post_id: postId,
           target_user_id: post.author_id
         });
@@ -87,7 +87,7 @@ export const Feed = ({ onPostClick }: FeedProps) => {
         .from('secret_likes')
         .select('*')
         .eq('source_user_id', post.author_id)
-        .eq('target_user_id', userProfile.id)
+        .eq('target_user_id', user.id)
         .single();
 
       if (mutualLike) {
@@ -95,7 +95,7 @@ export const Feed = ({ onPostClick }: FeedProps) => {
         const { error: matchError } = await supabase
           .from('matches')
           .insert({
-            user_a_id: userProfile.id,
+            user_a_id: user.id,
             user_b_id: post.author_id
           });
 

@@ -25,7 +25,7 @@ const Index = () => {
   }
 
   // If user is authenticated, show main app
-  if (user && userProfile) {
+  if (user) {
     return (
       <div className="min-h-screen bg-background">
         {activeTab === 'feed' && <Feed onPostClick={() => {}} />}
