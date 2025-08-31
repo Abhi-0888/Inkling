@@ -144,7 +144,6 @@ export const DarkDesire = () => {
               }}
               onLike={() => handleLike(post.id)}
               onComment={() => {}}
-              onSecretLike={() => {}}
             />
             ))}
           </div>
