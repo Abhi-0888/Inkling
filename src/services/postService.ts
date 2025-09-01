@@ -11,12 +11,15 @@ export interface PostWithStats extends Post {
 export const postService = {
   async getFeedPosts(instituteId?: string, visibility: 'campus' | 'global' = 'campus', limit: number = 20, offset: number = 0): Promise<PostWithStats[]> {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       let query = supabase
         .from('posts')
         .select(`
           *,
-          reactions(count),
-          comments(count)
+          reactions!inner(count),
+          comments!inner(count)
         `)
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
@@ -33,15 +36,31 @@ export const postService = {
 
       if (error) throw error;
 
-      // For now, return mock data structure until we have the proper RPC function
-      return (posts || []).map(post => ({
-        ...post,
-        section: post.section as 'feed' | 'dark_desire',
-        like_count: Math.floor(Math.random() * 50),
-        comment_count: Math.floor(Math.random() * 20),
-        user_has_liked: false,
-        user_has_secret_liked: false,
-      })) as PostWithStats[];
+      // Get user's likes and reactions
+      const postIds = (posts || []).map(p => p.id);
+      let userReactions: any[] = [];
+      
+      if (postIds.length > 0) {
+        const { data: reactions } = await supabase
+          .from('reactions')
+          .select('post_id, type')
+          .eq('user_id', user.id)
+          .in('post_id', postIds);
+        
+        userReactions = reactions || [];
+      }
+
+      return (posts || []).map(post => {
+        const userReaction = userReactions.find(r => r.post_id === post.id);
+        return {
+          ...post,
+          section: post.section as 'feed' | 'dark_desire',
+          like_count: Math.max(0, Math.floor(Math.random() * 50)), // TODO: Get actual count from aggregated reactions
+          comment_count: Math.max(0, Math.floor(Math.random() * 20)), // TODO: Get actual count from aggregated comments
+          user_has_liked: !!userReaction && userReaction.type === 'like',
+          user_has_secret_liked: false, // TODO: Check secret likes
+        };
+      }) as PostWithStats[];
     } catch (error) {
       console.error('Error fetching feed posts:', error);
       return [];
@@ -159,12 +178,15 @@ export const postService = {
 
   async getDarkDesirePosts(limit: number = 20, offset: number = 0): Promise<PostWithStats[]> {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
       const { data: posts, error } = await supabase
         .from('posts')
         .select(`
           *,
-          reactions(count),
-          comments(count)
+          reactions!inner(count),
+          comments!inner(count)
         `)
         .eq('section', 'dark_desire')
         .order('created_at', { ascending: false })
@@ -172,15 +194,31 @@ export const postService = {
 
       if (error) throw error;
 
-      // For now, return mock data structure until we have the proper RPC function
-      return (posts || []).map(post => ({
-        ...post,
-        section: post.section as 'feed' | 'dark_desire',
-        like_count: Math.floor(Math.random() * 30),
-        comment_count: Math.floor(Math.random() * 15),
-        user_has_liked: false,
-        user_has_secret_liked: false,
-      })) as PostWithStats[];
+      // Get user's likes and reactions
+      const postIds = (posts || []).map(p => p.id);
+      let userReactions: any[] = [];
+      
+      if (postIds.length > 0) {
+        const { data: reactions } = await supabase
+          .from('reactions')
+          .select('post_id, type')
+          .eq('user_id', user.id)
+          .in('post_id', postIds);
+        
+        userReactions = reactions || [];
+      }
+
+      return (posts || []).map(post => {
+        const userReaction = userReactions.find(r => r.post_id === post.id);
+        return {
+          ...post,
+          section: post.section as 'feed' | 'dark_desire',
+          like_count: Math.max(0, Math.floor(Math.random() * 30)), // TODO: Get actual count from aggregated reactions
+          comment_count: Math.max(0, Math.floor(Math.random() * 15)), // TODO: Get actual count from aggregated comments
+          user_has_liked: !!userReaction && userReaction.type === 'like',
+          user_has_secret_liked: false, // TODO: Check secret likes
+        };
+      }) as PostWithStats[];
     } catch (error) {
       console.error('Error fetching dark desire posts:', error);
       return [];

@@ -6,12 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Plus, Flame } from 'lucide-react';
 import { postService, PostWithStats } from '@/services/postService';
 import { useToast } from '@/hooks/use-toast';
+import { VerificationGate } from '@/components/common/VerificationGate';
 
 interface DarkDesireProps {
-  onLogout: () => Promise<void>;
+  onShowProfile: () => void;
 }
 
-export const DarkDesire = ({ onLogout }: DarkDesireProps) => {
+export const DarkDesire = ({ onShowProfile }: DarkDesireProps) => {
   const { userProfile } = useAuth();
   const { toast } = useToast();
   const [posts, setPosts] = useState<PostWithStats[]>([]);
@@ -112,12 +113,12 @@ export const DarkDesire = ({ onLogout }: DarkDesireProps) => {
               Confess
             </Button>
             <Button 
-              onClick={onLogout}
+              onClick={onShowProfile}
               variant="ghost"
               size="sm"
               className="text-muted-foreground hover:text-foreground"
             >
-              Logout
+              Profile
             </Button>
           </div>
         </div>
@@ -131,37 +132,39 @@ export const DarkDesire = ({ onLogout }: DarkDesireProps) => {
 
       {/* Posts */}
       <div className="max-w-2xl mx-auto">
-        {posts.length === 0 ? (
-          <div className="text-center py-12 px-4">
-            <Flame className="h-12 w-12 text-destructive/50 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">No confessions yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Be the first to share an anonymous confession
-            </p>
-            <Button 
-              onClick={() => setShowComposer(true)}
-              className="bg-gradient-to-r from-destructive to-destructive/80"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Share a Secret
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-4 p-4">
-            {posts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={{
-                ...post,
-                reactions: [],
-                comments_count: post.comment_count
-              }}
-              onLike={() => handleLike(post.id)}
-              onComment={() => {}}
-            />
-            ))}
-          </div>
-        )}
+        <VerificationGate requireVerification={true} onShowProfile={onShowProfile}>
+          {posts.length === 0 ? (
+            <div className="text-center py-12 px-4">
+              <Flame className="h-12 w-12 text-destructive/50 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No confessions yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Be the first to share an anonymous confession
+              </p>
+              <Button 
+                onClick={() => setShowComposer(true)}
+                className="bg-gradient-to-r from-destructive to-destructive/80"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Share a Secret
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-4 p-4">
+              {posts.map((post) => (
+              <PostCard
+                key={post.id}
+                post={{
+                  ...post,
+                  reactions: [],
+                  comments_count: post.comment_count
+                }}
+                onLike={() => handleLike(post.id)}
+                onComment={() => {}}
+              />
+              ))}
+            </div>
+          )}
+        </VerificationGate>
       </div>
 
       {/* Post Composer Modal */}

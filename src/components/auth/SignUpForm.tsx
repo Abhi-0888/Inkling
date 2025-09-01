@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { UserPlus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
+import { IdentityVerificationForm } from './IdentityVerificationForm';
 
 interface SignUpFormProps {
   onHaveAccount: () => void;
@@ -16,6 +17,7 @@ export const SignUpForm = ({ onHaveAccount }: SignUpFormProps) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
   const { signUp } = useAuth();
   const { toast } = useToast();
 
@@ -45,8 +47,9 @@ export const SignUpForm = ({ onHaveAccount }: SignUpFormProps) => {
       await signUp(email, password);
       toast({
         title: "Account created!",
-        description: "Welcome to Inkling! You can now explore the community.",
+        description: "Now complete your identity verification to access all features.",
       });
+      setShowVerification(true);
     } catch (error: any) {
       toast({
         title: "Sign up failed",
@@ -57,6 +60,17 @@ export const SignUpForm = ({ onHaveAccount }: SignUpFormProps) => {
       setLoading(false);
     }
   };
+
+  if (showVerification) {
+    return (
+      <IdentityVerificationForm 
+        onVerificationSubmitted={() => {
+          // User will be redirected to main app after verification is submitted
+          setShowVerification(false);
+        }}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex items-center justify-center p-4">
