@@ -304,25 +304,52 @@ export type Database = {
       }
       users: {
         Row: {
+          address: string | null
           age_verified: boolean | null
           created_at: string | null
+          date_of_birth: string | null
           email: string
+          full_name: string | null
           id: string
+          id_card_back_url: string | null
+          id_card_front_url: string | null
+          phone_number: string | null
           updated_at: string | null
+          verification_completed_at: string | null
+          verification_status: string | null
+          verification_submitted_at: string | null
         }
         Insert: {
+          address?: string | null
           age_verified?: boolean | null
           created_at?: string | null
+          date_of_birth?: string | null
           email: string
+          full_name?: string | null
           id?: string
+          id_card_back_url?: string | null
+          id_card_front_url?: string | null
+          phone_number?: string | null
           updated_at?: string | null
+          verification_completed_at?: string | null
+          verification_status?: string | null
+          verification_submitted_at?: string | null
         }
         Update: {
+          address?: string | null
           age_verified?: boolean | null
           created_at?: string | null
+          date_of_birth?: string | null
           email?: string
+          full_name?: string | null
           id?: string
+          id_card_back_url?: string | null
+          id_card_front_url?: string | null
+          phone_number?: string | null
           updated_at?: string | null
+          verification_completed_at?: string | null
+          verification_status?: string | null
+          verification_submitted_at?: string | null
         }
         Relationships: []
       }
