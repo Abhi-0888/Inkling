@@ -4,6 +4,7 @@ import { LandingPage } from '@/pages/LandingPage';
 import { AgeGate } from '@/components/auth/AgeGate';
 import { SignUpForm } from '@/components/auth/SignUpForm';
 import { SignInForm } from '@/components/SignInForm';
+import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm';
 import { Feed } from '@/components/feed/Feed';
 import { DarkDesire } from '@/components/sections/DarkDesire';
 import { BlindDate } from '@/components/sections/BlindDate';
@@ -15,7 +16,7 @@ import { IdentityVerificationForm } from '@/components/auth/IdentityVerification
 
 const Index = () => {
   const { user, userProfile, loading, signOut } = useAuth();
-  const [onboardingStep, setOnboardingStep] = useState<'landing' | 'signin' | 'age-gate' | 'signup'>('landing');
+  const [onboardingStep, setOnboardingStep] = useState<'landing' | 'signin' | 'age-gate' | 'signup' | 'forgot-password'>('landing');
   const [activeTab, setActiveTab] = useState('feed');
   const [showProfile, setShowProfile] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
@@ -71,6 +72,15 @@ const Index = () => {
     return (
       <SignInForm
         onNeedAccount={() => setOnboardingStep('age-gate')}
+        onForgotPassword={() => setOnboardingStep('forgot-password')}
+      />
+    );
+  }
+
+  if (onboardingStep === 'forgot-password') {
+    return (
+      <ForgotPasswordForm
+        onBack={() => setOnboardingStep('signin')}
       />
     );
   }

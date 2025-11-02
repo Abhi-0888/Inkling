@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { User, Shield, CheckCircle, Clock, XCircle, LogOut } from 'lucide-react';
+import { User, Shield, CheckCircle, Clock, XCircle, LogOut, Key } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
+import { ChangePasswordForm } from '@/components/auth/ChangePasswordForm';
 
 interface ProfileManagerProps {
   onClose: () => void;
@@ -15,6 +16,7 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
   const { user, userProfile, signOut } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   const getVerificationStatusInfo = (status: string) => {
     switch (status) {
@@ -151,6 +153,28 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
               </div>
             </div>
           </div>
+
+          {/* Change Password Section */}
+          {showChangePassword ? (
+            <div className="space-y-3">
+              <h4 className="font-medium text-sm">Change Password</h4>
+              <ChangePasswordForm 
+                onSuccess={() => {
+                  setShowChangePassword(false);
+                }}
+                onCancel={() => setShowChangePassword(false)}
+              />
+            </div>
+          ) : (
+            <Button 
+              variant="outline" 
+              onClick={() => setShowChangePassword(true)}
+              className="w-full"
+            >
+              <Key className="h-4 w-4 mr-2" />
+              Change Password
+            </Button>
+          )}
 
           {/* Actions */}
           <div className="flex space-x-2">
