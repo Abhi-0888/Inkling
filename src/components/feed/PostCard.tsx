@@ -14,6 +14,7 @@ interface PostCardProps {
     reactions: Reaction[];
     comments_count: number;
     user_reaction?: Reaction;
+    author?: { display_name: string };
   };
   onLike: (postId: string) => void;
   onComment: (postId: string) => void;
@@ -49,7 +50,9 @@ export const PostCard = ({ post, onLike, onComment, onSecretLike }: PostCardProp
               <Sparkles className="h-4 w-4 text-primary-foreground" />
             </div>
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Anonymous</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                {post.author?.display_name || 'Anonymous'}
+              </p>
               <p className="text-xs text-muted-foreground">
                 {formatDistance(new Date(post.created_at), new Date(), { addSuffix: true })}
               </p>

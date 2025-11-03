@@ -3,10 +3,12 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserPlus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { IdentityVerificationForm } from './IdentityVerificationForm';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SignUpFormProps {
   onHaveAccount: () => void;
@@ -16,6 +18,8 @@ export const SignUpForm = ({ onHaveAccount }: SignUpFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [gender, setGender] = useState<'male' | 'female' | 'other'>('male');
   const [loading, setLoading] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
   const { signUp } = useAuth();
@@ -33,6 +37,15 @@ export const SignUpForm = ({ onHaveAccount }: SignUpFormProps) => {
       return;
     }
 
+    if (!displayName.trim()) {
+      toast({
+        title: "Display name required",
+        description: "Please enter a display name",
+        variant: "destructive"
+      });
+      return;
+    }
+
     if (password.length < 8) {
       toast({
         title: "Password too short",
@@ -45,6 +58,16 @@ export const SignUpForm = ({ onHaveAccount }: SignUpFormProps) => {
     setLoading(true);
     try {
       await signUp(email, password);
+      
+      // Update user profile with display name and gender
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        await supabase
+          .from('users')
+          .update({ display_name: displayName, gender })
+          .eq('id', user.id);
+      }
+      
       toast({
         title: "Account created!",
         description: "Now complete your identity verification to access all features.",
@@ -89,6 +112,18 @@ export const SignUpForm = ({ onHaveAccount }: SignUpFormProps) => {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="displayName">Display Name</Label>
+              <Input
+                id="displayName"
+                type="text"
+                placeholder="How you'll appear to others"
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
@@ -98,6 +133,20 @@ export const SignUpForm = ({ onHaveAccount }: SignUpFormProps) => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="gender">Gender</Label>
+              <Select value={gender} onValueChange={(value: 'male' | 'female' | 'other') => setGender(value)}>
+                <SelectTrigger id="gender">
+                  <SelectValue placeholder="Select gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">

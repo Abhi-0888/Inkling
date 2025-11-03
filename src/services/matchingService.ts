@@ -23,17 +23,45 @@ export const matchingService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Get other users excluding current user
+      // Get current user's gender
+      const { data: currentUser } = await supabase
+        .from('users')
+        .select('gender')
+        .eq('id', user.id)
+        .single();
+
+      if (!currentUser?.gender) {
+        throw new Error('Please set your gender in profile settings first');
+      }
+
+      // Get opposite gender users
+      const oppositeGender = currentUser.gender === 'male' ? 'female' : currentUser.gender === 'female' ? 'male' : null;
+      
+      // Get users excluding current user and already matched users
+      const { data: existingMatches } = await supabase
+        .from('matches')
+        .select('user_a_id, user_b_id')
+        .or(`user_a_id.eq.${user.id},user_b_id.eq.${user.id}`);
+
+      const matchedUserIds = new Set(
+        (existingMatches || []).flatMap(m => [m.user_a_id, m.user_b_id]).filter(id => id !== user.id)
+      );
+
       const { data: users, error } = await supabase
         .from('users')
-        .select('id, email')
+        .select('id, display_name, email')
         .neq('id', user.id)
-        .limit(10);
+        .eq('gender', oppositeGender || currentUser.gender)
+        .eq('verification_status', 'verified')
+        .limit(20);
 
       if (error) throw error;
 
-      // Return mock candidates based on users
-      return (users || []).map((user, index) => ({
+      // Filter out already matched users
+      const availableUsers = (users || []).filter(u => !matchedUserIds.has(u.id));
+
+      // Return candidates with display names
+      return availableUsers.map((user) => ({
         id: user.id,
         bio: `Looking for meaningful connections and good conversations! Love exploring new places and trying different cuisines.`,
         interests: ['Music', 'Travel', 'Food', 'Books', 'Movies'].slice(0, Math.floor(Math.random() * 3) + 2),

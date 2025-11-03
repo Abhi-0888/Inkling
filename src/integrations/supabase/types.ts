@@ -329,8 +329,10 @@ export type Database = {
           age_verified: boolean | null
           created_at: string | null
           date_of_birth: string | null
+          display_name: string | null
           email: string
           full_name: string | null
+          gender: string | null
           id: string
           id_card_back_url: string | null
           id_card_front_url: string | null
@@ -345,8 +347,10 @@ export type Database = {
           age_verified?: boolean | null
           created_at?: string | null
           date_of_birth?: string | null
+          display_name?: string | null
           email: string
           full_name?: string | null
+          gender?: string | null
           id?: string
           id_card_back_url?: string | null
           id_card_front_url?: string | null
@@ -361,8 +365,10 @@ export type Database = {
           age_verified?: boolean | null
           created_at?: string | null
           date_of_birth?: string | null
+          display_name?: string | null
           email?: string
           full_name?: string | null
+          gender?: string | null
           id?: string
           id_card_back_url?: string | null
           id_card_front_url?: string | null

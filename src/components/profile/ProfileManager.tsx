@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { User, Shield, CheckCircle, Clock, XCircle, LogOut, Key } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { User, Shield, CheckCircle, Clock, XCircle, LogOut, Key, Save } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
@@ -17,6 +19,46 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [displayName, setDisplayName] = useState('');
+  const [gender, setGender] = useState<'male' | 'female' | 'other'>('male');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (userProfile) {
+      setDisplayName(userProfile.display_name || '');
+      const profileGender = userProfile.gender as 'male' | 'female' | 'other';
+      if (profileGender && ['male', 'female', 'other'].includes(profileGender)) {
+        setGender(profileGender);
+      }
+    }
+  }, [userProfile]);
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ display_name: displayName, gender })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been updated successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error updating profile",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const getVerificationStatusInfo = (status: string) => {
     switch (status) {
@@ -103,6 +145,38 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
+          {/* Profile Settings */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm text-muted-foreground">Display Name</label>
+              <Input
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Your display name"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm text-muted-foreground">Gender</label>
+              <Select value={gender} onValueChange={(value: 'male' | 'female' | 'other') => setGender(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button 
+              onClick={handleSaveProfile} 
+              disabled={saving}
+              className="w-full"
+            >
+              {saving ? <><User className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : <><Save className="mr-2 h-4 w-4" /> Save Profile</>}
+            </Button>
+          </div>
+
           {/* User Info */}
           <div className="space-y-3">
             <div>
@@ -110,14 +184,14 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
               <p className="font-medium">{user?.email}</p>
             </div>
             
-            {userProfile.full_name && (
+            {userProfile?.full_name && (
               <div>
                 <p className="text-sm text-muted-foreground">Full Name</p>
                 <p className="font-medium">{userProfile.full_name}</p>
               </div>
             )}
 
-            {userProfile.phone_number && (
+            {userProfile?.phone_number && (
               <div>
                 <p className="text-sm text-muted-foreground">Phone</p>
                 <p className="font-medium">{userProfile.phone_number}</p>

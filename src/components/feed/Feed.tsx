@@ -25,6 +25,24 @@ export const Feed = ({ onPostClick, onShowProfile }: FeedProps) => {
 
   useEffect(() => {
     fetchPosts();
+    
+    // Set up real-time subscriptions for posts, reactions, and comments
+    const channel = supabase
+      .channel('feed-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => {
+        fetchPosts();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reactions' }, () => {
+        fetchPosts();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, () => {
+        fetchPosts();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [activeTab, user]);
 
   const fetchPosts = async () => {

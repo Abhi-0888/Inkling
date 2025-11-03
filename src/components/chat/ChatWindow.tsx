@@ -34,24 +34,34 @@ export const ChatWindow = ({ type, sessionId, onSessionEnd }: ChatWindowProps) =
 
   useEffect(() => {
     loadMessages();
-    
-    // Set up real-time subscriptions
-    const subscription = supabase
-      .channel(`chat_${sessionId}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'messages',
-        filter: type === 'match' 
-          ? `match_id=eq.${sessionId}`
-          : `blind_date_id=eq.${sessionId}`
-      }, (payload) => {
-        setMessages(prev => [...prev, payload.new as ChatMessage]);
-      })
+
+    // Subscribe to new messages for both regular matches and blind dates
+    const channel = supabase
+      .channel(`chat-${sessionId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `match_id=eq.${sessionId}`
+        },
+        (payload) => {
+          const newMessage: ChatMessage = {
+            id: payload.new.id,
+            sender_id: payload.new.sender_id,
+            content: payload.new.content,
+            created_at: payload.new.created_at,
+            media_ref: payload.new.media_ref
+          };
+          setMessages(prev => [...prev, newMessage]);
+          setTimeout(scrollToBottom, 100);
+        }
+      )
       .subscribe();
 
     return () => {
-      subscription.unsubscribe();
+      supabase.removeChannel(channel);
     };
   }, [sessionId, type]);
 
