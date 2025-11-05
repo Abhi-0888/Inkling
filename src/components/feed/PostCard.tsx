@@ -11,8 +11,11 @@ import { cn } from '@/lib/utils';
 
 interface PostCardProps {
   post: Post & {
-    reactions: Reaction[];
-    comments_count: number;
+    reactions?: Reaction[];
+    comments_count?: number;
+    comment_count?: number;
+    like_count?: number;
+    user_has_liked?: boolean;
     user_reaction?: Reaction;
     author?: { display_name: string };
   };
@@ -26,8 +29,9 @@ export const PostCard = ({ post, onLike, onComment, onSecretLike }: PostCardProp
   const { userProfile } = useAuth();
   const { toast } = useToast();
 
-  const likesCount = post.reactions.filter(r => r.type === 'like').length;
-  const isLiked = !!post.user_reaction;
+  const likesCount = post.like_count || post.reactions?.filter(r => r.type === 'like').length || 0;
+  const commentsCount = post.comment_count || post.comments_count || 0;
+  const isLiked = post.user_has_liked || !!post.user_reaction;
 
   const handleSecretLike = () => {
     if (onSecretLike) {
@@ -113,7 +117,7 @@ export const PostCard = ({ post, onLike, onComment, onSecretLike }: PostCardProp
               className="flex items-center space-x-1"
             >
               <MessageCircle className="h-4 w-4" />
-              <span>{post.comments_count}</span>
+              <span>{commentsCount}</span>
             </Button>
           </div>
 
