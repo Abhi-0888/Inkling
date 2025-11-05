@@ -146,10 +146,13 @@ export const Matching = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5 p-6 flex flex-col justify-end">
             <div className="space-y-4">
               <div className="space-y-2">
-                <h3 className="text-2xl font-bold">Anonymous User</h3>
-                <p className="text-muted-foreground">
-                  {currentCandidate.grad_year ? `Class of ${currentCandidate.grad_year}` : 'Student'}
-                </p>
+                <h3 className="text-2xl font-bold">{currentCandidate.display_name || 'Anonymous'}</h3>
+                <div className="flex items-center space-x-2">
+                  <p className="text-muted-foreground">
+                    {currentCandidate.gender && `${currentCandidate.gender.charAt(0).toUpperCase() + currentCandidate.gender.slice(1)}`}
+                    {currentCandidate.grad_year && ` • Class of ${currentCandidate.grad_year}`}
+                  </p>
+                </div>
               </div>
               
               {currentCandidate.bio && (

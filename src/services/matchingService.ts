@@ -2,6 +2,8 @@ import { supabase } from '@/lib/supabase';
 
 export interface MatchCandidate {
   id: string;
+  display_name?: string;
+  gender?: string;
   bio?: string;
   interests?: string[];
   grad_year?: number;
@@ -49,7 +51,7 @@ export const matchingService = {
 
       const { data: users, error } = await supabase
         .from('users')
-        .select('id, display_name, email')
+        .select('id, display_name, gender')
         .neq('id', user.id)
         .eq('gender', oppositeGender || currentUser.gender)
         .eq('verification_status', 'verified')
@@ -60,9 +62,11 @@ export const matchingService = {
       // Filter out already matched users
       const availableUsers = (users || []).filter(u => !matchedUserIds.has(u.id));
 
-      // Return candidates with display names
+      // Return candidates with real user information
       return availableUsers.map((user) => ({
         id: user.id,
+        display_name: user.display_name || 'Anonymous',
+        gender: user.gender,
         bio: `Looking for meaningful connections and good conversations! Love exploring new places and trying different cuisines.`,
         interests: ['Music', 'Travel', 'Food', 'Books', 'Movies'].slice(0, Math.floor(Math.random() * 3) + 2),
         grad_year: 2024 + Math.floor(Math.random() * 4)
