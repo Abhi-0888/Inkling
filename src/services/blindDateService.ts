@@ -32,21 +32,25 @@ export const blindDateService = {
         throw new Error('Blind dates are only available for male/female users');
       }
 
-      // Check if there's someone of opposite gender already waiting
-      const { data: waitingUser, error: queueError } = await supabase
+      // Get all waiting users to filter by gender
+      const { data: waitingUsers, error: queueError } = await supabase
         .from('blind_dates')
         .select(`
           *,
           user_a:users!blind_dates_user_a_id_fkey(gender)
         `)
         .gte('active_until', new Date().toISOString())
-        .neq('user_a_id', user.id)
-        .eq('user_b_id', 'user_a_id') // User is waiting (user_b same as user_a)
-        .limit(1)
-        .single();
+        .neq('user_a_id', user.id);
 
-      // Filter by gender on client side (since we can't filter on joined table in RLS context)
-      if (waitingUser && waitingUser.user_a?.gender === oppositeGender) {
+      if (queueError) throw queueError;
+
+      // Filter for users waiting alone (user_b_id equals user_a_id) with opposite gender
+      const waitingUser = waitingUsers?.find(session => 
+        session.user_b_id === session.user_a_id && 
+        session.user_a?.gender === oppositeGender
+      );
+
+      if (waitingUser) {
         // Match with the waiting user
         const activeUntil = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours from now
         
