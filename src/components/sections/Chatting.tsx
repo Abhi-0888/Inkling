@@ -26,24 +26,34 @@ export const Chatting = () => {
 
     const channel = supabase
       .channel('matches-changes')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'matches' }, (payload) => {
-        // Refresh lists on any relevant insert
-        loadMatches();
-        loadLikes();
-
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'matches' }, async (payload) => {
         const newRow: any = payload.new;
-        if (user && newRow.user_b_id === user.id) {
-          // Notification to receiver
-          toast({
-            title: "New like!",
-            description: "Someone liked you. Like back to start chatting.",
-          });
-        }
+        
+        // Refresh lists immediately
+        await Promise.all([loadMatches(), loadLikes()]);
 
-        // If mutual, show celebratory toast
-        if (user && ((newRow.user_a_id === user.id) || (newRow.user_b_id === user.id))) {
-          // We rely on loadMatches detecting mutual pairs and showing them
-          // Optionally, we could check immediately, but keeping it lightweight
+        if (user && newRow.user_b_id === user.id) {
+          // Check if this creates a mutual match
+          const { data: reverseMatch } = await supabase
+            .from('matches')
+            .select('*')
+            .eq('user_a_id', user.id)
+            .eq('user_b_id', newRow.user_a_id)
+            .maybeSingle();
+
+          if (reverseMatch) {
+            // Mutual match - show celebration
+            toast({
+              title: "🎉 It's a Match!",
+              description: "You can now chat with each other.",
+            });
+          } else {
+            // One-way like
+            toast({
+              title: "New like!",
+              description: "Someone liked you. Like back to start chatting.",
+            });
+          }
         }
       })
       .subscribe();
@@ -251,13 +261,22 @@ export const Chatting = () => {
                           size="sm"
                           onClick={async () => {
                             try {
-                              await matchingService.likeUser(u.id);
-                              await loadMatches();
-                              await loadLikes();
-                              toast({
-                                title: "It's a match!",
-                                description: "You can now chat with each other.",
-                              });
+                              const isMutual = await matchingService.likeUser(u.id);
+                              
+                              // Refresh both lists
+                              await Promise.all([loadMatches(), loadLikes()]);
+                              
+                              if (isMutual) {
+                                toast({
+                                  title: "🎉 It's a Match!",
+                                  description: "You can now start chatting.",
+                                });
+                              } else {
+                                toast({
+                                  title: "Like sent!",
+                                  description: "You'll match when they like you back.",
+                                });
+                              }
                             } catch (error) {
                               console.error('Error liking back:', error);
                               toast({

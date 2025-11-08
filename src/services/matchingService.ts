@@ -145,15 +145,24 @@ export const matchingService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Check if match already exists
-      const { data: existingMatch } = await supabase
+      // Check if I already liked them
+      const { data: myLikeToThem } = await supabase
         .from('matches')
         .select('*')
-        .or(`and(user_a_id.eq.${candidateId},user_b_id.eq.${user.id}),and(user_a_id.eq.${user.id},user_b_id.eq.${candidateId})`)
+        .eq('user_a_id', user.id)
+        .eq('user_b_id', candidateId)
         .maybeSingle();
 
-      if (!existingMatch) {
-        // Create a new match
+      // Check if they already liked me
+      const { data: theirLikeToMe } = await supabase
+        .from('matches')
+        .select('*')
+        .eq('user_a_id', candidateId)
+        .eq('user_b_id', user.id)
+        .maybeSingle();
+
+      // If I haven't liked them yet, create the like
+      if (!myLikeToThem) {
         const { error } = await supabase
           .from('matches')
           .insert({
@@ -165,21 +174,10 @@ export const matchingService = {
           console.error('Error creating match:', error);
           throw error;
         }
-
-        // Check if candidate has also liked the current user (mutual match)
-        const { data: mutualMatch } = await supabase
-          .from('matches')
-          .select('*')
-          .eq('user_a_id', candidateId)
-          .eq('user_b_id', user.id)
-          .maybeSingle();
-
-        if (mutualMatch) {
-          return true; // It's a mutual match!
-        }
       }
 
-      return false;
+      // Return true if they liked me (creating a mutual match)
+      return !!theirLikeToMe;
     } catch (error) {
       console.error('Error liking user:', error);
       return false;
