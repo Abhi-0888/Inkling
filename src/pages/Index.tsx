@@ -5,6 +5,7 @@ import { AgeGate } from '@/components/auth/AgeGate';
 import { SignUpForm } from '@/components/auth/SignUpForm';
 import { SignInForm } from '@/components/SignInForm';
 import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm';
+import { ResetPasswordPage } from '@/components/auth/ResetPasswordPage';
 import { Feed } from '@/components/feed/Feed';
 import { DarkDesire } from '@/components/sections/DarkDesire';
 import { BlindDate } from '@/components/sections/BlindDate';
@@ -16,7 +17,7 @@ import { ProfileManager } from '@/components/profile/ProfileManager';
 import { IdentityVerificationForm } from '@/components/auth/IdentityVerificationForm';
 
 const Index = () => {
-  const { user, userProfile, loading, signOut } = useAuth();
+  const { user, userProfile, loading, isPasswordRecovery, clearPasswordRecovery } = useAuth();
   const [onboardingStep, setOnboardingStep] = useState<'landing' | 'signin' | 'age-gate' | 'signup' | 'forgot-password'>('landing');
   const [activeTab, setActiveTab] = useState('feed');
   const [showProfile, setShowProfile] = useState(false);
@@ -27,6 +28,13 @@ const Index = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       </div>
+    );
+  }
+
+  // Show password reset page if user clicked reset link from email
+  if (isPasswordRecovery && user) {
+    return (
+      <ResetPasswordPage onSuccess={clearPasswordRecovery} />
     );
   }
 
