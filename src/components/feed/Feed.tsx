@@ -1,15 +1,18 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Sparkles, TrendingUp } from 'lucide-react';
+import { Plus, Sparkles, TrendingUp, Shield } from 'lucide-react';
 import { PostCard } from './PostCard';
 import { PostComposer } from './PostComposer';
 import { CommentsDialog } from './CommentsDialog';
+import { SkeletonFeed } from '@/components/ui/skeleton-card';
 import { postService, PostWithStats } from '@/services/postService';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { VerificationGate } from '@/components/common/VerificationGate';
+import { useAdmin } from '@/hooks/useAdmin';
+import { Link } from 'react-router-dom';
 
 interface FeedProps {
   onPostClick?: (postId: string) => void;
@@ -24,6 +27,7 @@ export const Feed = ({ onPostClick, onShowProfile }: FeedProps) => {
   const [activeTab, setActiveTab] = useState('foryou');
   const { user } = useAuth();
   const { toast } = useToast();
+  const { isModerator } = useAdmin();
 
   useEffect(() => {
     fetchPosts();
@@ -163,6 +167,17 @@ export const Feed = ({ onPostClick, onShowProfile }: FeedProps) => {
             >
               Profile
             </Button>
+            {isModerator && (
+              <Link to="/admin">
+                <Button 
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground hover:text-primary"
+                >
+                  <Shield className="h-5 w-5" />
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -186,13 +201,7 @@ export const Feed = ({ onPostClick, onShowProfile }: FeedProps) => {
             <TabsContent value={activeTab} className="mt-0 space-y-4">
               <VerificationGate requireVerification={true} onShowProfile={onShowProfile}>
                 {loading ? (
-                  <div className="space-y-4">
-                    {[...Array(3)].map((_, i) => (
-                      <div key={i} className="animate-pulse">
-                        <div className="bg-muted rounded-lg h-32"></div>
-                      </div>
-                    ))}
-                  </div>
+                  <SkeletonFeed count={3} />
                 ) : posts.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
