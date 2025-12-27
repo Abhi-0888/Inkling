@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      bans: {
+        Row: {
+          ban_type: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          issued_by: string | null
+          reason: string
+          user_id: string
+        }
+        Insert: {
+          ban_type: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          issued_by?: string | null
+          reason: string
+          user_id: string
+        }
+        Update: {
+          ban_type?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          issued_by?: string | null
+          reason?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       blind_dates: {
         Row: {
           active_until: string
@@ -91,6 +124,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      flagged_content: {
+        Row: {
+          auto_flagged: boolean
+          content_id: string
+          content_type: string
+          created_at: string
+          flag_reason: string
+          id: string
+          reviewed: boolean
+          reviewed_at: string | null
+          reviewed_by: string | null
+        }
+        Insert: {
+          auto_flagged?: boolean
+          content_id: string
+          content_type: string
+          created_at?: string
+          flag_reason: string
+          id?: string
+          reviewed?: boolean
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+        }
+        Update: {
+          auto_flagged?: boolean
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          flag_reason?: string
+          id?: string
+          reviewed?: boolean
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+        }
+        Relationships: []
       }
       matches: {
         Row: {
@@ -289,6 +358,48 @@ export type Database = {
           },
         ]
       }
+      reports: {
+        Row: {
+          action_taken: string | null
+          content_id: string
+          content_type: string
+          created_at: string
+          description: string | null
+          id: string
+          reason: string
+          reporter_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          action_taken?: string | null
+          content_id: string
+          content_type: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          reason: string
+          reporter_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          action_taken?: string | null
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          reason?: string
+          reporter_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       secret_likes: {
         Row: {
           created_at: string | null
@@ -335,6 +446,72 @@ export type Database = {
           },
         ]
       }
+      trust_scores: {
+        Row: {
+          created_at: string
+          id: string
+          positive_interactions: number
+          score: number
+          total_blocks_received: number
+          total_likes_received: number
+          total_reports_against: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          positive_interactions?: number
+          score?: number
+          total_blocks_received?: number
+          total_likes_received?: number
+          total_reports_against?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          positive_interactions?: number
+          score?: number
+          total_blocks_received?: number
+          total_likes_received?: number
+          total_reports_against?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      universities: {
+        Row: {
+          country: string
+          created_at: string
+          domain: string | null
+          id: string
+          is_active: boolean
+          name: string
+          verification_method: string
+        }
+        Insert: {
+          country?: string
+          created_at?: string
+          domain?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          verification_method?: string
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          domain?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          verification_method?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -356,6 +533,41 @@ export type Database = {
         }
         Relationships: []
       }
+      user_strikes: {
+        Row: {
+          created_at: string
+          id: string
+          issued_by: string | null
+          reason: string
+          report_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          issued_by?: string | null
+          reason: string
+          report_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          issued_by?: string | null
+          reason?: string
+          report_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_strikes_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           address: string | null
@@ -370,6 +582,7 @@ export type Database = {
           id_card_back_url: string | null
           id_card_front_url: string | null
           phone_number: string | null
+          university_id: string | null
           updated_at: string | null
           verification_completed_at: string | null
           verification_status: string | null
@@ -388,6 +601,7 @@ export type Database = {
           id_card_back_url?: string | null
           id_card_front_url?: string | null
           phone_number?: string | null
+          university_id?: string | null
           updated_at?: string | null
           verification_completed_at?: string | null
           verification_status?: string | null
@@ -406,12 +620,21 @@ export type Database = {
           id_card_back_url?: string | null
           id_card_front_url?: string | null
           phone_number?: string | null
+          university_id?: string | null
           updated_at?: string | null
           verification_completed_at?: string | null
           verification_status?: string | null
           verification_submitted_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "users_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -428,6 +651,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      get_strike_count: { Args: { _user_id: string }; Returns: number }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -435,6 +659,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_user_banned: { Args: { _user_id: string }; Returns: boolean }
       is_verified: { Args: { _user_id: string }; Returns: boolean }
     }
     Enums: {
