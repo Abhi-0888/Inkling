@@ -15,6 +15,7 @@ interface NotificationItemProps {
   };
   onMarkAsRead: (id: string) => void;
   onClose: () => void;
+  onNavigate?: (tab: string) => void;
 }
 
 const getNotificationIcon = (type: string) => {
@@ -32,12 +33,30 @@ const getNotificationIcon = (type: string) => {
   }
 };
 
-export const NotificationItem = ({ notification, onMarkAsRead, onClose }: NotificationItemProps) => {
+export const NotificationItem = ({ notification, onMarkAsRead, onClose, onNavigate }: NotificationItemProps) => {
   const handleClick = () => {
     if (!notification.read) {
       onMarkAsRead(notification.id);
     }
-    // Could add navigation logic here based on notification type
+    
+    if (onNavigate) {
+      switch (notification.type) {
+        case 'match':
+        case 'blind_date_match':
+          onNavigate('chatting');
+          break;
+        case 'reaction':
+        case 'comment':
+          // Ideally we would check the post type, but for now default to feed
+          // or we could check if it's a dark desire post via another query, but that's slow.
+          // Let's assume most reactions are on feed.
+          onNavigate('feed');
+          break;
+        default:
+          break;
+      }
+    }
+    
     onClose();
   };
 
