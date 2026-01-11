@@ -21,6 +21,12 @@ export interface Match {
   match_type?: string;
   unread_count?: number;
   last_message?: string;
+  other_user?: {
+    id: string;
+    display_name: string;
+    avatar_color: string;
+    avatar_icon: string;
+  };
 }
 
 const AVATAR_COLORS = [
@@ -258,11 +264,27 @@ export const matchingService = {
 
         // If there are 2 matches (one in each direction), it's a mutual match
         if (reverseMatch && reverseMatch.length >= 2) {
+          // Fetch other user's details
+          const { data: otherUser } = await supabase
+            .from('users')
+            .select('display_name, gender')
+            .eq('id', otherUserId)
+            .maybeSingle();
+
+          const idSum = otherUserId.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
+          const colorIndex = idSum % AVATAR_COLORS.length;
+
           mutualMatches.push({
             ...match,
             match_type: 'swipe_match',
             unread_count: 0,
-            last_message: 'Start your conversation...'
+            last_message: 'Start your conversation...',
+            other_user: {
+              id: otherUserId,
+              display_name: otherUser?.display_name || 'Anonymous',
+              avatar_color: AVATAR_COLORS[colorIndex],
+              avatar_icon: 'user'
+            }
           });
         }
       }

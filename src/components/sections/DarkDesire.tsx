@@ -93,6 +93,27 @@ export const DarkDesire = ({ onShowProfile }: DarkDesireProps) => {
     }
   };
 
+  const VIBES = [
+    { icon: "😴", label: "Tired" },
+    { icon: "🥳", label: "Party" },
+    { icon: "💔", label: "Sad" },
+    { icon: "👻", label: "Ghost" },
+    { icon: "📚", label: "Study" },
+    { icon: "🤔", label: "Deep" },
+    { icon: "👀", label: "Looking" },
+  ];
+
+  const [myVibe, setMyVibe] = useState<string | null>(localStorage.getItem('my_daily_vibe'));
+
+  const handleSetVibe = (vibe: string) => {
+    setMyVibe(vibe);
+    localStorage.setItem('my_daily_vibe', vibe);
+    toast({
+        title: `Vibe set: ${vibe}`,
+        description: "Your vibe has been updated for today.",
+    });
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background pb-20">
@@ -105,26 +126,48 @@ export const DarkDesire = ({ onShowProfile }: DarkDesireProps) => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Intro & Action */}
-      <div className="p-4 space-y-4">
-          <div className="bg-gradient-to-r from-destructive/10 to-primary/10 p-4 rounded-lg border border-destructive/20 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                    <Flame className="h-5 w-5 text-destructive" />
-                    <h2 className="font-semibold text-foreground">Dark Desire</h2>
-                </div>
-                <Button
-                  onClick={() => setShowComposer(true)}
-                  size="sm"
-                  className="bg-gradient-to-r from-destructive to-destructive/80 hover:from-destructive/90 hover:to-destructive/70 shadow-md"
+      {/* Daily Vibe Selector */}
+      <div className="pt-4 px-4 pb-2">
+        <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">What's your vibe today?</h3>
+        <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+            {VIBES.map((v) => (
+                <button 
+                    key={v.label}
+                    onClick={() => handleSetVibe(v.label)}
+                    className={`flex flex-col items-center gap-1 min-w-[60px] p-2 rounded-xl transition-all ${myVibe === v.label ? 'bg-primary/10 scale-105 ring-2 ring-primary/20' : 'hover:bg-muted/50 grayscale hover:grayscale-0'}`}
                 >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Confess
+                    <span className="text-2xl filter drop-shadow-sm">{v.icon}</span>
+                    <span className="text-[10px] font-medium">{v.label}</span>
+                </button>
+            ))}
+        </div>
+      </div>
+
+      {/* Intro & Action */}
+      <div className="px-4 py-2 space-y-4">
+          <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden group cursor-pointer" onClick={() => setShowComposer(true)}>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl group-hover:bg-white/10 transition-colors"></div>
+            
+            <div className="relative z-10">
+                <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                        <div className="bg-white/10 p-1.5 rounded-lg backdrop-blur-sm">
+                            <Flame className="h-5 w-5 text-orange-500 fill-orange-500" />
+                        </div>
+                        <h2 className="font-bold text-lg">Dark Desire</h2>
+                    </div>
+                </div>
+                <p className="text-sm text-gray-300 mb-4 max-w-[80%]">
+                    Share your deepest secrets anonymously. No judgment, just relief.
+                </p>
+                <Button
+                  size="sm"
+                  className="bg-white text-black hover:bg-white/90 font-semibold w-full sm:w-auto"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Confess a Secret
                 </Button>
             </div>
-            <p className="text-sm text-muted-foreground">
-                Anonymous confessions and deeper thoughts. Share your secrets safely.
-            </p>
           </div>
       </div>
 
