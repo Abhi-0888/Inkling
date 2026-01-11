@@ -7,6 +7,10 @@ export interface MatchCandidate {
   bio?: string;
   interests?: string[];
   grad_year?: number;
+  avatar_color?: string;
+  avatar_icon?: string;
+  prompts?: { question: string; answer: string }[];
+  verification_status?: string;
 }
 
 export interface Match {
@@ -18,6 +22,24 @@ export interface Match {
   unread_count?: number;
   last_message?: string;
 }
+
+const AVATAR_COLORS = [
+  'from-pink-500 to-rose-500',
+  'from-purple-500 to-indigo-500',
+  'from-blue-500 to-cyan-500',
+  'from-emerald-500 to-teal-500',
+  'from-orange-500 to-amber-500',
+  'from-red-500 to-orange-500',
+];
+
+const PROMPTS = [
+  "My simple pleasure is...",
+  "I'm overly competitive about...",
+  "My unpopular opinion is...",
+  "Two truths and a lie...",
+  "The way to my heart is...",
+  "I bet you can't...",
+];
 
 export const matchingService = {
   async getCandidates(): Promise<MatchCandidate[]> {
@@ -78,14 +100,32 @@ export const matchingService = {
       }
 
       // Return candidates with real user information
-      return availableUsers.map((user) => ({
-        id: user.id,
-        display_name: user.display_name || 'Anonymous',
-        gender: user.gender,
-        bio: `Looking for meaningful connections and good conversations!`,
-        interests: ['Music', 'Travel', 'Food', 'Books', 'Movies'].slice(0, Math.floor(Math.random() * 3) + 2),
-        grad_year: 2024 + Math.floor(Math.random() * 4)
-      }));
+      return availableUsers.map((user, index) => {
+        // Deterministic avatar generation based on ID char code sum
+        const idSum = user.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+        const colorIndex = idSum % AVATAR_COLORS.length;
+        
+        // Random prompt selection
+        const promptIndex = (idSum + index) % PROMPTS.length;
+
+        return {
+          id: user.id,
+          display_name: user.display_name || 'Anonymous',
+          gender: user.gender,
+          verification_status: user.verification_status || 'verified',
+          bio: `Looking for meaningful connections and good conversations!`,
+          interests: ['Music', 'Travel', 'Food', 'Books', 'Movies', 'Gym', 'Art', 'Coding'].sort(() => 0.5 - Math.random()).slice(0, 3),
+          grad_year: 2024 + Math.floor(Math.random() * 4),
+          avatar_color: AVATAR_COLORS[colorIndex],
+          avatar_icon: 'user', // We can map this to actual icons in the UI component
+          prompts: [
+            {
+              question: PROMPTS[promptIndex],
+              answer: "Ask me about this! 🤫" // Placeholder answer
+            }
+          ]
+        };
+      });
     } catch (error) {
       console.error('Error fetching candidates:', error);
       throw error;
@@ -184,7 +224,7 @@ export const matchingService = {
     }
   },
 
-  async getMatches(): Promise<Match[]> {
+  async getMatches(): Promise<any[]> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');

@@ -22,6 +22,27 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
   const [displayName, setDisplayName] = useState('');
   const [gender, setGender] = useState<'male' | 'female' | 'other'>('male');
   const [saving, setSaving] = useState(false);
+  const [avatarColor, setAvatarColor] = useState('from-primary to-accent');
+  const [promptQuestion, setPromptQuestion] = useState("My simple pleasure is...");
+  const [promptAnswer, setPromptAnswer] = useState("");
+
+  const AVATAR_COLORS = [
+    'from-pink-500 to-rose-500',
+    'from-purple-500 to-indigo-500',
+    'from-blue-500 to-cyan-500',
+    'from-emerald-500 to-teal-500',
+    'from-orange-500 to-amber-500',
+    'from-red-500 to-orange-500',
+  ];
+
+  const PROMPTS = [
+    "My simple pleasure is...",
+    "I'm overly competitive about...",
+    "My unpopular opinion is...",
+    "Two truths and a lie...",
+    "The way to my heart is...",
+    "I bet you can't...",
+  ];
 
   useEffect(() => {
     if (userProfile) {
@@ -30,8 +51,17 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
       if (profileGender && ['male', 'female', 'other'].includes(profileGender)) {
         setGender(profileGender);
       }
+      
+      // Load extra profile data from localStorage
+      const savedExtras = localStorage.getItem(`user_profile_extras_${user?.id}`);
+      if (savedExtras) {
+        const { avatarColor, promptQuestion, promptAnswer } = JSON.parse(savedExtras);
+        if (avatarColor) setAvatarColor(avatarColor);
+        if (promptQuestion) setPromptQuestion(promptQuestion);
+        if (promptAnswer) setPromptAnswer(promptAnswer);
+      }
     }
-  }, [userProfile]);
+  }, [userProfile, user?.id]);
 
   const handleSaveProfile = async () => {
     if (!user) return;
@@ -44,6 +74,13 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
         .eq('id', user.id);
 
       if (error) throw error;
+
+      // Save extra data to localStorage
+      localStorage.setItem(`user_profile_extras_${user.id}`, JSON.stringify({
+        avatarColor,
+        promptQuestion,
+        promptAnswer
+      }));
 
       toast({
         title: "Profile updated",
@@ -145,8 +182,9 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
           <X className="h-4 w-4" />
         </Button>
         <CardHeader className="text-center space-y-4">
-          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center">
-            <User className="h-8 w-8 text-primary-foreground" />
+          <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center relative overflow-hidden">
+             <div className={`absolute inset-0 bg-gradient-to-br ${avatarColor}`} />
+            <User className="h-8 w-8 text-white relative z-10" />
           </div>
           <CardTitle className="text-xl font-bold">
             Profile
@@ -165,6 +203,42 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
                 className="h-9"
               />
             </div>
+
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground">Avatar Style</label>
+              <div className="flex gap-2 flex-wrap justify-center p-2 bg-muted/20 rounded-lg">
+                {AVATAR_COLORS.map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => setAvatarColor(color)}
+                    className={`w-8 h-8 rounded-full bg-gradient-to-br ${color} transition-transform hover:scale-110 focus:outline-none ring-2 ${avatarColor === color ? 'ring-primary ring-offset-2' : 'ring-transparent'}`}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground">Profile Prompt</label>
+              <Select value={promptQuestion} onValueChange={setPromptQuestion}>
+                <SelectTrigger className="h-9 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROMPTS.map((p) => (
+                    <SelectItem key={p} value={p} className="text-xs">
+                      {p}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Input
+                value={promptAnswer}
+                onChange={(e) => setPromptAnswer(e.target.value)}
+                placeholder="Your answer..."
+                className="h-9"
+              />
+            </div>
+
             <div className="space-y-2">
               <label className="text-xs text-muted-foreground">Gender</label>
               <Select value={gender} onValueChange={(value: 'male' | 'female' | 'other') => setGender(value)}>

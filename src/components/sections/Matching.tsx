@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Heart, X, Sparkles, Users, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Heart, X, Sparkles, Users, ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { matchingService, MatchCandidate } from '@/services/matchingService';
 import { useToast } from '@/hooks/use-toast';
 
@@ -59,21 +60,23 @@ export const Matching = () => {
       }
       
       // Move to next candidate
-      if (currentIndex + 1 >= candidates.length) {
-        // Load more candidates
-        await loadCandidates();
-      } else {
-        setCurrentIndex(currentIndex + 1);
-      }
+      setTimeout(() => {
+        if (currentIndex + 1 >= candidates.length) {
+            loadCandidates();
+        } else {
+            setCurrentIndex(prev => prev + 1);
+        }
+        setSwiping(false);
+      }, 300);
+      
     } catch (error) {
       console.error('Error swiping:', error);
+      setSwiping(false);
       toast({
         title: "Error",
         description: "Failed to record your choice. Please try again.",
         variant: "destructive",
       });
-    } finally {
-      setSwiping(false);
     }
   };
 
@@ -119,80 +122,110 @@ export const Matching = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20 flex flex-col items-center p-4 pt-6">
-      <div className="w-full max-w-sm space-y-6">
-        <div className="text-center text-sm text-muted-foreground">
-            Candidate {currentIndex + 1} of {candidates.length}
-        </div>
-
-        {/* Candidate Card */}
-        <Card className="relative overflow-hidden h-[55vh] shadow-xl border-primary/10 rounded-3xl group">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-background to-accent/10 transition-transform duration-500 group-hover:scale-105" />
-          
-          <div className="absolute inset-0 p-8 flex flex-col justify-center items-center text-center">
-             <div className="w-32 h-32 bg-primary/10 rounded-full flex items-center justify-center mb-6 shadow-inner">
-                <Users className="h-16 w-16 text-primary/40" />
-             </div>
-          </div>
-
-          <div className="absolute inset-0 p-6 flex flex-col justify-end bg-gradient-to-t from-background via-background/80 to-transparent">
-            <div className="space-y-4">
-              <div className="space-y-1">
-                <h3 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-                    {currentCandidate.display_name || 'Anonymous'}
-                </h3>
-                <div className="flex items-center space-x-2 text-muted-foreground">
-                  <p className="text-sm font-medium">
-                    {currentCandidate.gender && `${currentCandidate.gender.charAt(0).toUpperCase() + currentCandidate.gender.slice(1)}`}
-                    {currentCandidate.grad_year && ` • Class of ${currentCandidate.grad_year}`}
-                  </p>
+    <div className="flex flex-col h-[calc(100vh-8rem)]">
+      <div className="text-center py-2 text-sm text-muted-foreground">
+        {candidates.length - currentIndex} people near you
+      </div>
+      
+      <div className="flex-1 px-4 pb-4 flex items-center justify-center relative">
+        <div className={`w-full max-w-md h-full transition-all duration-300 ${swiping ? 'scale-95 opacity-50' : 'scale-100 opacity-100'}`}>
+            <Card className="relative overflow-hidden h-full shadow-xl border-primary/10 rounded-3xl group bg-card">
+              {/* Avatar Background */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${currentCandidate.avatar_color || 'from-primary/20 to-accent/20'} opacity-30 transition-transform duration-500 group-hover:scale-105`} />
+              
+              {/* Content Container */}
+              <div className="relative h-full flex flex-col p-6 z-10 overflow-y-auto hide-scrollbar">
+                
+                {/* Header Profile Section */}
+                <div className="flex flex-col items-center mb-6 mt-4">
+                  <div className={`w-32 h-32 rounded-full bg-gradient-to-br ${currentCandidate.avatar_color || 'from-primary to-accent'} shadow-lg flex items-center justify-center mb-4 ring-4 ring-background animate-fade-in`}>
+                    <Sparkles className="h-16 w-16 text-white/90" />
+                  </div>
+                  
+                  <div className="text-center space-y-1">
+                    <div className="flex items-center justify-center gap-2">
+                        <h2 className="text-2xl font-bold">{currentCandidate.display_name}</h2>
+                        {currentCandidate.verification_status === 'verified' && (
+                            <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100 px-1.5 py-0 h-6">
+                                <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                                Verified
+                            </Badge>
+                        )}
+                    </div>
+                    <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
+                        <span className="capitalize">{currentCandidate.gender}</span>
+                        <span>•</span>
+                        <span>Class of {currentCandidate.grad_year}</span>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Bio Section */}
+                <div className="space-y-6 flex-1">
+                    <div className="bg-background/60 backdrop-blur-sm p-4 rounded-xl border border-border/50 shadow-sm">
+                        <p className="text-center text-lg leading-relaxed font-medium text-foreground/90">
+                            "{currentCandidate.bio}"
+                        </p>
+                    </div>
+
+                    {/* Interests Tags */}
+                    <div className="flex flex-wrap gap-2 justify-center">
+                        {currentCandidate.interests?.map((interest, i) => (
+                        <Badge 
+                            key={i} 
+                            variant="outline" 
+                            className="px-3 py-1.5 text-sm bg-background/50 backdrop-blur-sm border-primary/20"
+                        >
+                            {interest}
+                        </Badge>
+                        ))}
+                    </div>
+
+                    {/* Prompts Section (New) */}
+                    {currentCandidate.prompts?.map((prompt, i) => (
+                        <div key={i} className="bg-primary/5 p-4 rounded-xl border border-primary/10 space-y-2">
+                            <p className="text-xs font-bold text-primary uppercase tracking-wider">{prompt.question}</p>
+                            <p className="text-base font-medium">{prompt.answer}</p>
+                        </div>
+                    ))}
+                </div>
+
               </div>
-              
-              {currentCandidate.bio && (
-                <p className="text-sm text-muted-foreground line-clamp-3">
-                  {currentCandidate.bio}
-                </p>
-              )}
-              
-              {currentCandidate.interests && currentCandidate.interests.length > 0 && (
-                <div className="flex flex-wrap gap-2 pt-2">
-                  {currentCandidate.interests.slice(0, 3).map((interest, index) => (
-                    <span
-                      key={index}
-                      className="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full font-medium"
-                    >
-                      {interest}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </Card>
-
-        {/* Action Buttons */}
-        <div className="flex items-center justify-center gap-8">
-          <Button
-            onClick={() => handleSwipe('pass')}
-            disabled={swiping}
-            size="lg"
-            variant="outline"
-            className="w-16 h-16 rounded-full border-2 border-destructive/20 text-destructive hover:bg-destructive hover:text-destructive-foreground hover:border-destructive shadow-sm transition-all duration-300 hover:scale-110"
-          >
-            <X className="h-8 w-8" />
-          </Button>
-          
-          <Button
-            onClick={() => handleSwipe('like')}
-            disabled={swiping}
-            size="lg"
-            className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25 transition-all duration-300 hover:scale-110"
-          >
-            <Heart className="h-8 w-8 fill-current" />
-          </Button>
+            </Card>
         </div>
 
+        {/* Swipe Indicators */}
+        <div className="absolute top-1/2 left-4 -translate-y-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="bg-destructive/90 text-destructive-foreground p-4 rounded-full shadow-lg transform -rotate-12">
+                <X className="h-8 w-8" />
+            </div>
+        </div>
+        <div className="absolute top-1/2 right-4 -translate-y-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="bg-green-500/90 text-white p-4 rounded-full shadow-lg transform rotate-12">
+                <Heart className="h-8 w-8 fill-current" />
+            </div>
+        </div>
+      </div>
+
+      <div className="h-24 px-4 pb-4 flex items-center justify-center gap-6">
+        <Button
+          onClick={() => handleSwipe('pass')}
+          disabled={swiping}
+          size="lg"
+          variant="outline"
+          className="w-16 h-16 rounded-full border-2 border-destructive/20 text-destructive hover:bg-destructive/10 hover:border-destructive hover:scale-110 transition-all duration-300 shadow-lg shadow-destructive/10"
+        >
+          <X className="h-8 w-8" />
+        </Button>
+        
+        <Button
+          onClick={() => handleSwipe('like')}
+          disabled={swiping}
+          size="lg"
+          className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg shadow-primary/25 transition-all duration-300 hover:scale-110"
+        >
+          <Heart className="h-8 w-8 fill-current" />
+        </Button>
       </div>
     </div>
   );
