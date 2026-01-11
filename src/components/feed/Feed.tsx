@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Sparkles, TrendingUp } from 'lucide-react';
+import { Plus, Sparkles, TrendingUp, Zap } from 'lucide-react';
 import { PostCard } from './PostCard';
 import { PostComposer } from './PostComposer';
 import { CommentsDialog } from './CommentsDialog';
 import { SkeletonFeed } from '@/components/ui/skeleton-card';
+import { StoriesRail } from './StoriesRail';
 import { postService, PostWithStats } from '@/services/postService';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -23,8 +24,15 @@ export const Feed = ({ onPostClick, onShowProfile }: FeedProps) => {
   const [showComposer, setShowComposer] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('foryou');
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const { toast } = useToast();
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
+  };
 
   useEffect(() => {
     fetchPosts();
@@ -141,20 +149,36 @@ export const Feed = ({ onPostClick, onShowProfile }: FeedProps) => {
 
   return (
     <div className="flex-1 pb-20">
+      {/* Header & Stories */}
+      <div className="bg-background border-b border-border/50">
+        <div className="px-4 pt-4 pb-2 flex justify-between items-end">
+            <div>
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
+                    {getGreeting()}, {userProfile?.display_name?.split(' ')[0] || 'Friend'}
+                </h1>
+            </div>
+            <div className="flex items-center gap-1 bg-orange-500/10 text-orange-600 px-2 py-1 rounded-full border border-orange-500/20">
+                <Zap className="h-3.5 w-3.5 fill-current" />
+                <span className="text-xs font-bold">3</span>
+            </div>
+        </div>
+        
+        <StoriesRail />
+      </div>
+
       {/* Tabs Section */}
-      <div className="sticky top-14 bg-background/95 backdrop-blur-md border-b border-border z-30 px-4 pt-3">
-        <div className="flex items-center justify-between mb-3">
+      <div className="sticky top-14 bg-background/95 backdrop-blur-md border-b border-border z-30 px-4 pt-3 pb-3 shadow-sm">
+        <div className="flex items-center justify-between">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
-            <TabsList className="grid w-full grid-cols-3 h-10">
-              <TabsTrigger value="foryou" className="flex items-center gap-1.5 text-sm">
-                <Sparkles className="h-3.5 w-3.5" />
-                <span>For You</span>
+            <TabsList className="grid w-full grid-cols-3 h-9 bg-secondary/50">
+              <TabsTrigger value="foryou" className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                For You
               </TabsTrigger>
-              <TabsTrigger value="fresh" className="flex items-center gap-1.5 text-sm">
-                <TrendingUp className="h-3.5 w-3.5" />
-                <span>Fresh</span>
+              <TabsTrigger value="fresh" className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                Fresh
               </TabsTrigger>
-              <TabsTrigger value="campus" className="text-sm">
+              <TabsTrigger value="campus" className="text-xs font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm">
                 Campus
               </TabsTrigger>
             </TabsList>
@@ -162,10 +186,9 @@ export const Feed = ({ onPostClick, onShowProfile }: FeedProps) => {
           <Button 
             onClick={() => setShowComposer(true)}
             size="sm"
-            className="ml-3 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-md"
+            className="ml-3 h-9 w-9 rounded-full bg-primary hover:bg-primary/90 shadow-md p-0"
           >
-            <Plus className="h-4 w-4 mr-1" />
-            Post
+            <Plus className="h-5 w-5" />
           </Button>
         </div>
       </div>
