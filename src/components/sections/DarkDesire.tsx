@@ -9,6 +9,7 @@ import { postService, PostWithStats } from '@/services/postService';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { VerificationGate } from '@/components/common/VerificationGate';
+import { DailyPoll } from '@/components/feed/DailyPoll';
 
 interface DarkDesireProps {
   onShowProfile: () => void;
@@ -169,6 +170,8 @@ export const DarkDesire = ({ onShowProfile }: DarkDesireProps) => {
                 </Button>
             </div>
           </div>
+          
+          <DailyPoll />
       </div>
 
       {/* Posts */}

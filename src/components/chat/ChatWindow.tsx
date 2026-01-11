@@ -2,12 +2,12 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send, Image } from 'lucide-react';
+import { Send, Image, Dices } from 'lucide-react';
 import { blindDateService } from '@/services/blindDateService';
 import { matchingService } from '@/services/matchingService';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
-import { IcebreakerPrompt } from './IcebreakerPrompt';
+import { IcebreakerPrompt, ICEBREAKERS } from './IcebreakerPrompt';
 import { ChatExpiryTimer } from './ChatExpiryTimer';
 import { MessageBubble } from './MessageBubble';
 import { UnreadIndicator } from './UnreadIndicator';
@@ -181,6 +181,11 @@ export const ChatWindow = ({ type, sessionId, expiresAt, onSessionEnd }: ChatWin
     setShowIcebreaker(false);
   };
 
+  const insertRandomIcebreaker = () => {
+    const randomPrompt = ICEBREAKERS[Math.floor(Math.random() * ICEBREAKERS.length)];
+    setNewMessage(randomPrompt);
+  };
+
   const messageGroups = groupMessages(messages);
 
   if (loading) {
@@ -257,12 +262,22 @@ export const ChatWindow = ({ type, sessionId, expiresAt, onSessionEnd }: ChatWin
       <div className="border-t border-border p-4 bg-background">
         <div className="flex items-center space-x-2">
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
-            className="shrink-0"
+            className="shrink-0 text-muted-foreground hover:text-primary"
+            onClick={insertRandomIcebreaker}
+            title="Random Icebreaker"
+          >
+            <Dices className="h-5 w-5" />
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            className="shrink-0 text-muted-foreground hover:text-primary"
             disabled
           >
-            <Image className="h-4 w-4" />
+            <Image className="h-5 w-5" />
           </Button>
           
           <Input
@@ -270,7 +285,7 @@ export const ChatWindow = ({ type, sessionId, expiresAt, onSessionEnd }: ChatWin
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Type a message..."
-            className="flex-1"
+            className="flex-1 bg-secondary/50 border-0 focus-visible:ring-1 focus-visible:ring-primary/50"
             disabled={sending}
           />
           
@@ -278,7 +293,7 @@ export const ChatWindow = ({ type, sessionId, expiresAt, onSessionEnd }: ChatWin
             onClick={sendMessage}
             disabled={!newMessage.trim() || sending}
             size="icon"
-            className="shrink-0"
+            className="shrink-0 bg-primary hover:bg-primary/90 rounded-full h-10 w-10 shadow-sm"
           >
             <Send className={`h-4 w-4 ${sending ? 'animate-pulse' : ''}`} />
           </Button>

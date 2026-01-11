@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Heart, X, Sparkles, Users, ArrowLeft, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Heart, X, Sparkles, Users, ArrowLeft, ArrowRight, CheckCircle2, Star } from 'lucide-react';
 import { matchingService, MatchCandidate } from '@/services/matchingService';
 import { useToast } from '@/hooks/use-toast';
 
@@ -37,16 +37,23 @@ export const Matching = () => {
     }
   };
 
-  const handleSwipe = async (direction: 'like' | 'pass') => {
+  const handleSwipe = async (direction: 'like' | 'pass' | 'super_like') => {
     if (swiping || currentIndex >= candidates.length) return;
     
     setSwiping(true);
     const candidate = candidates[currentIndex];
+    const actualDirection = direction === 'super_like' ? 'like' : direction;
     
     try {
-      const isMatch = await matchingService.swipe(candidate.id, direction);
+      const isMatch = await matchingService.swipe(candidate.id, actualDirection);
       
-      if (isMatch && direction === 'like') {
+      if (direction === 'super_like') {
+        toast({
+            title: "🌟 Super Like sent!",
+            description: `You really like ${candidate.display_name}!`,
+            className: "bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-none"
+        });
+      } else if (isMatch && direction === 'like') {
         toast({
           title: "🎉 It's a Match!",
           description: `You and ${candidate.display_name || 'your match'} can now chat with each other!`,
@@ -216,6 +223,15 @@ export const Matching = () => {
           className="w-16 h-16 rounded-full border-2 border-destructive/20 text-destructive hover:bg-destructive/10 hover:border-destructive hover:scale-110 transition-all duration-300 shadow-lg shadow-destructive/10"
         >
           <X className="h-8 w-8" />
+        </Button>
+        
+        <Button
+          onClick={() => handleSwipe('super_like')}
+          disabled={swiping}
+          size="lg"
+          className="w-12 h-12 rounded-full bg-white border border-blue-200 text-blue-500 hover:bg-blue-50 hover:scale-110 transition-all duration-300 shadow-lg -mt-4"
+        >
+          <Star className="h-6 w-6 fill-current" />
         </Button>
         
         <Button
