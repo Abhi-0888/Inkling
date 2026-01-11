@@ -1,13 +1,17 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import { Send, Image, MoreVertical } from 'lucide-react';
+import { Send, Image } from 'lucide-react';
 import { blindDateService } from '@/services/blindDateService';
 import { matchingService } from '@/services/matchingService';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
+import { IcebreakerPrompt } from './IcebreakerPrompt';
+import { ChatExpiryTimer } from './ChatExpiryTimer';
+import { MessageBubble } from './MessageBubble';
+import { UnreadIndicator } from './UnreadIndicator';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ChatMessage {
   id: string;
@@ -20,22 +24,48 @@ interface ChatMessage {
 interface ChatWindowProps {
   type: 'match' | 'blind_date';
   sessionId: string;
+  expiresAt?: string;
   onSessionEnd?: () => void;
 }
 
-export const ChatWindow = ({ type, sessionId, onSessionEnd }: ChatWindowProps) => {
+// Group messages by sender and time proximity (2 minutes)
+const groupMessages = (messages: ChatMessage[]) => {
+  const groups: { messages: ChatMessage[]; senderId: string }[] = [];
+  
+  messages.forEach((msg, idx) => {
+    const prevMsg = messages[idx - 1];
+    const timeDiff = prevMsg 
+      ? new Date(msg.created_at).getTime() - new Date(prevMsg.created_at).getTime()
+      : Infinity;
+    
+    // Start new group if different sender or more than 2 minutes apart
+    if (!prevMsg || prevMsg.sender_id !== msg.sender_id || timeDiff > 2 * 60 * 1000) {
+      groups.push({ messages: [msg], senderId: msg.sender_id });
+    } else {
+      groups[groups.length - 1].messages.push(msg);
+    }
+  });
+  
+  return groups;
+};
+
+export const ChatWindow = ({ type, sessionId, expiresAt, onSessionEnd }: ChatWindowProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const [showIcebreaker, setShowIcebreaker] = useState(true);
+  
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     loadMessages();
 
-    // Subscribe to new messages for both regular matches and blind dates
     const channel = supabase
       .channel(`chat-${sessionId}`)
       .on(
@@ -47,15 +77,21 @@ export const ChatWindow = ({ type, sessionId, onSessionEnd }: ChatWindowProps) =
           filter: `match_id=eq.${sessionId}`
         },
         (payload) => {
-          const newMessage: ChatMessage = {
+          const newMsg: ChatMessage = {
             id: payload.new.id,
             sender_id: payload.new.sender_id,
             content: payload.new.content,
             created_at: payload.new.created_at,
             media_ref: payload.new.media_ref
           };
-          setMessages(prev => [...prev, newMessage]);
-          setTimeout(scrollToBottom, 100);
+          setMessages(prev => [...prev, newMsg]);
+          
+          // If not at bottom, increment unread count
+          if (!isAtBottom && newMsg.sender_id !== user?.id) {
+            setUnreadCount(prev => prev + 1);
+          } else {
+            setTimeout(scrollToBottom, 100);
+          }
         }
       )
       .subscribe();
@@ -63,14 +99,30 @@ export const ChatWindow = ({ type, sessionId, onSessionEnd }: ChatWindowProps) =
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [sessionId, type]);
+  }, [sessionId, type, isAtBottom, user?.id]);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (isAtBottom) {
+      scrollToBottom();
+      setUnreadCount(0);
+    }
+  }, [messages, isAtBottom]);
+
+  const handleScroll = useCallback(() => {
+    if (!scrollContainerRef.current) return;
+    
+    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+    setIsAtBottom(isNearBottom);
+    
+    if (isNearBottom) {
+      setUnreadCount(0);
+    }
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    setUnreadCount(0);
   };
 
   const loadMessages = async () => {
@@ -80,6 +132,7 @@ export const ChatWindow = ({ type, sessionId, onSessionEnd }: ChatWindowProps) =
         ? await matchingService.getMessages(sessionId)
         : await blindDateService.getMessages(sessionId);
       setMessages(msgs);
+      setShowIcebreaker(msgs.length === 0);
     } catch (error) {
       console.error('Error loading messages:', error);
       toast({
@@ -103,6 +156,7 @@ export const ChatWindow = ({ type, sessionId, onSessionEnd }: ChatWindowProps) =
         await blindDateService.sendMessage(sessionId, newMessage.trim());
       }
       setNewMessage('');
+      setShowIcebreaker(false);
     } catch (error) {
       console.error('Error sending message:', error);
       toast({
@@ -122,76 +176,89 @@ export const ChatWindow = ({ type, sessionId, onSessionEnd }: ChatWindowProps) =
     }
   };
 
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      hour12: true 
-    });
+  const handleUseIcebreaker = (prompt: string) => {
+    setNewMessage(prompt);
+    setShowIcebreaker(false);
   };
+
+  const messageGroups = groupMessages(messages);
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex flex-col h-full p-4 space-y-4">
+        {[1, 2, 3].map((i) => (
+          <div key={i} className={`flex ${i % 2 === 0 ? 'justify-end' : 'justify-start'}`}>
+            <Skeleton className={`h-12 ${i % 2 === 0 ? 'w-48' : 'w-64'} rounded-2xl`} />
+          </div>
+        ))}
       </div>
     );
   }
 
   return (
     <div className="flex flex-col h-full">
+      {/* Expiry Timer for blind dates */}
+      {type === 'blind_date' && expiresAt && (
+        <div className="flex justify-center py-2 border-b border-border bg-background/50">
+          <ChatExpiryTimer expiresAt={expiresAt} onExpire={onSessionEnd} />
+        </div>
+      )}
+
       {/* Chat Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-muted-foreground">
-              {type === 'blind_date' 
-                ? "Start your anonymous conversation..." 
-                : "Your chat begins here..."}
-            </p>
+      <div 
+        ref={scrollContainerRef}
+        onScroll={handleScroll}
+        className="flex-1 overflow-y-auto p-4 space-y-3"
+      >
+        {/* Icebreaker for empty chats */}
+        {showIcebreaker && messages.length === 0 && (
+          <div className="space-y-4">
+            <div className="text-center py-6">
+              <p className="text-muted-foreground text-sm">
+                {type === 'blind_date' 
+                  ? "Start your anonymous conversation..." 
+                  : "Your chat begins here..."}
+              </p>
+            </div>
+            <IcebreakerPrompt onUsePrompt={handleUseIcebreaker} />
           </div>
-        ) : (
-          <>
-            {messages.map((message) => {
+        )}
+
+        {/* Message Groups */}
+        {messageGroups.map((group, groupIdx) => (
+          <div key={groupIdx} className="space-y-0.5">
+            {group.messages.map((message, msgIdx) => {
               const isOwn = message.sender_id === user?.id;
+              const isFirst = msgIdx === 0;
+              const isLast = msgIdx === group.messages.length - 1;
+              
               return (
-                <div
+                <MessageBubble
                   key={message.id}
-                  className={`flex ${isOwn ? 'justify-end' : 'justify-start'}`}
-                >
-                  <Card
-                    className={`max-w-xs px-4 py-2 ${
-                      isOwn
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-muted'
-                    }`}
-                  >
-                    <p className="text-sm">{message.content}</p>
-                    <p
-                      className={`text-xs mt-1 ${
-                        isOwn
-                          ? 'text-primary-foreground/70'
-                          : 'text-muted-foreground'
-                      }`}
-                    >
-                      {formatTime(message.created_at)}
-                    </p>
-                  </Card>
-                </div>
+                  content={message.content}
+                  timestamp={message.created_at}
+                  isOwn={isOwn}
+                  isFirstInGroup={isFirst}
+                  isLastInGroup={isLast}
+                  showTimestamp={isLast}
+                />
               );
             })}
-            <div ref={messagesEndRef} />
-          </>
-        )}
+          </div>
+        ))}
+
+        <div ref={messagesEndRef} />
       </div>
 
+      {/* Unread Indicator */}
+      <UnreadIndicator count={unreadCount} onClick={scrollToBottom} />
+
       {/* Message Input */}
-      <div className="border-t border-border p-4">
+      <div className="border-t border-border p-4 bg-background">
         <div className="flex items-center space-x-2">
           <Button
             variant="outline"
-            size="sm"
+            size="icon"
             className="shrink-0"
             disabled
           >
@@ -210,18 +277,12 @@ export const ChatWindow = ({ type, sessionId, onSessionEnd }: ChatWindowProps) =
           <Button
             onClick={sendMessage}
             disabled={!newMessage.trim() || sending}
-            size="sm"
+            size="icon"
             className="shrink-0"
           >
-            <Send className="h-4 w-4" />
+            <Send className={`h-4 w-4 ${sending ? 'animate-pulse' : ''}`} />
           </Button>
         </div>
-        
-        {type === 'blind_date' && (
-          <p className="text-xs text-muted-foreground mt-2 text-center">
-            This chat will automatically expire in 24 hours
-          </p>
-        )}
       </div>
     </div>
   );

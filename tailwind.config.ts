@@ -104,6 +104,10 @@ export default {
 				'glow-pulse': {
 					'0%, 100%': { boxShadow: '0 0 20px hsl(var(--primary) / 0.3)' },
 					'50%': { boxShadow: '0 0 40px hsl(var(--primary) / 0.5)' }
+				},
+				'bounce-subtle': {
+					'0%, 100%': { transform: 'translateX(-50%) translateY(0)' },
+					'50%': { transform: 'translateX(-50%) translateY(-4px)' }
 				}
 			},
 			animation: {
@@ -115,7 +119,8 @@ export default {
 				'slide-up': 'slide-up 0.3s ease-out',
 				'heart-pulse': 'heart-pulse 0.3s ease-in-out',
 				'shimmer': 'shimmer 2s infinite linear',
-				'glow-pulse': 'glow-pulse 2s infinite ease-in-out'
+				'glow-pulse': 'glow-pulse 2s infinite ease-in-out',
+				'bounce-subtle': 'bounce-subtle 1.5s ease-in-out infinite'
 			}
 		}
 	},
