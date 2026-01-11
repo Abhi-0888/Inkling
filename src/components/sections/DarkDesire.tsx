@@ -95,17 +95,7 @@ export const DarkDesire = ({ onShowProfile }: DarkDesireProps) => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center space-x-2">
-              <Flame className="h-6 w-6 text-destructive" />
-              <h1 className="text-xl font-bold bg-gradient-to-r from-destructive to-primary bg-clip-text text-transparent">
-                Dark Desire
-              </h1>
-            </div>
-          </div>
-        </div>
+      <div className="min-h-screen bg-background pb-20">
         <div className="flex items-center justify-center pt-20">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
@@ -115,40 +105,27 @@ export const DarkDesire = ({ onShowProfile }: DarkDesireProps) => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center space-x-2">
-            <Flame className="h-6 w-6 text-destructive" />
-            <h1 className="text-xl font-bold bg-gradient-to-r from-destructive to-primary bg-clip-text text-transparent">
-              Dark Desire
-            </h1>
+      {/* Intro & Action */}
+      <div className="p-4 space-y-4">
+          <div className="bg-gradient-to-r from-destructive/10 to-primary/10 p-4 rounded-lg border border-destructive/20 shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                    <Flame className="h-5 w-5 text-destructive" />
+                    <h2 className="font-semibold text-foreground">Dark Desire</h2>
+                </div>
+                <Button
+                  onClick={() => setShowComposer(true)}
+                  size="sm"
+                  className="bg-gradient-to-r from-destructive to-destructive/80 hover:from-destructive/90 hover:to-destructive/70 shadow-md"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Confess
+                </Button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+                Anonymous confessions and deeper thoughts. Share your secrets safely.
+            </p>
           </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              onClick={() => setShowComposer(true)}
-              size="sm"
-              className="bg-gradient-to-r from-destructive to-destructive/80 hover:from-destructive/90 hover:to-destructive/70"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Confess
-            </Button>
-            <Button 
-              onClick={onShowProfile}
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Profile
-            </Button>
-          </div>
-        </div>
-        
-        <div className="px-4 pb-3">
-          <p className="text-sm text-muted-foreground">
-            Anonymous confessions and deeper thoughts. Share your secrets safely.
-          </p>
-        </div>
       </div>
 
       {/* Posts */}

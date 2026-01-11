@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageCircle, Heart, Users, ArrowRight } from 'lucide-react';
+import { MessageCircle, Heart, Users, ArrowRight, ArrowLeft } from 'lucide-react';
 import { matchingService, Match, MatchCandidate } from '@/services/matchingService';
 import { ChatWindow } from '@/components/chat/ChatWindow';
 import { useToast } from '@/hooks/use-toast';
@@ -109,26 +109,35 @@ export const Chatting = () => {
 
   if (selectedMatch) {
     return (
-      <div className="min-h-screen bg-background pb-20">
-        <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
-          <div className="flex items-center space-x-2 p-4">
-            <Button
+      <div className="min-h-screen bg-background pb-20 flex flex-col">
+         {/* Chat Header */}
+         <div className="p-3 bg-card/80 backdrop-blur-md border-b border-border flex items-center gap-3 sticky top-0 z-10">
+             <Button
               onClick={() => setSelectedMatch(null)}
               variant="ghost"
-              size="sm"
+              size="icon"
+              className="h-9 w-9 -ml-1 hover:bg-primary/10"
             >
-              ← Back
+              <ArrowLeft className="h-5 w-5" />
             </Button>
-            <MessageCircle className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold">Anonymous Chat</h1>
-          </div>
-        </div>
+            <div className="flex items-center gap-3">
+                 <div className="w-9 h-9 bg-gradient-to-br from-primary to-primary/60 rounded-full flex items-center justify-center shadow-sm">
+                    <Heart className="h-4 w-4 text-primary-foreground fill-current" />
+                 </div>
+                 <div>
+                     <h3 className="font-semibold text-sm leading-none mb-1">Anonymous Match</h3>
+                     <p className="text-xs text-muted-foreground">Chatting anonymously</p>
+                 </div>
+            </div>
+         </div>
 
-        <ChatWindow 
-          type="match" 
-          sessionId={selectedMatch.id}
-          onSessionEnd={() => setSelectedMatch(null)}
-        />
+        <div className="flex-1">
+            <ChatWindow 
+            type="match" 
+            sessionId={selectedMatch.id}
+            onSessionEnd={() => setSelectedMatch(null)}
+            />
+        </div>
       </div>
     );
   }
@@ -136,12 +145,6 @@ export const Chatting = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background pb-20">
-        <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
-          <div className="flex items-center space-x-2 p-4">
-            <MessageCircle className="h-6 w-6 text-primary" />
-            <h1 className="text-xl font-bold">Chatting</h1>
-          </div>
-        </div>
         <div className="flex items-center justify-center pt-20">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         </div>
@@ -151,14 +154,6 @@ export const Chatting = () => {
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="flex items-center space-x-2 p-4">
-          <MessageCircle className="h-6 w-6 text-primary" />
-          <h1 className="text-xl font-bold">Chatting</h1>
-        </div>
-      </div>
-
       <div className="max-w-md mx-auto p-4">
         <Tabs defaultValue="matches" className="w-full">
           <TabsList className="grid grid-cols-2 w-full">

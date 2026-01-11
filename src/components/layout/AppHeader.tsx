@@ -6,10 +6,21 @@ import { Link } from 'react-router-dom';
 
 interface AppHeaderProps {
   onShowProfile: () => void;
+  activeTab?: string;
 }
 
-export const AppHeader = ({ onShowProfile }: AppHeaderProps) => {
+export const AppHeader = ({ onShowProfile, activeTab }: AppHeaderProps) => {
   const { isModerator } = useAdmin();
+
+  const getTitle = () => {
+    switch (activeTab) {
+      case 'dark-desire': return 'Dark Desire';
+      case 'blind-date': return 'Blind Date';
+      case 'matching': return 'Matching';
+      case 'chatting': return 'Chatting';
+      default: return 'Inkling';
+    }
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 border-b border-border shadow-sm">
@@ -20,7 +31,7 @@ export const AppHeader = ({ onShowProfile }: AppHeaderProps) => {
             <div className="absolute inset-0 h-6 w-6 text-primary fill-primary blur-sm opacity-50" />
           </div>
           <h1 className="text-xl font-bold bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-            Inkling
+            {getTitle()}
           </h1>
         </div>
         <div className="flex items-center gap-1">
