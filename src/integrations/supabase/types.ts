@@ -86,6 +86,50 @@ export type Database = {
           },
         ]
       }
+      campus_polls: {
+        Row: {
+          category: string
+          created_at: string
+          creator_id: string | null
+          ends_at: string
+          id: string
+          is_featured: boolean
+          options: Json
+          question: string
+          university_id: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          creator_id?: string | null
+          ends_at: string
+          id?: string
+          is_featured?: boolean
+          options?: Json
+          question: string
+          university_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          creator_id?: string | null
+          ends_at?: string
+          id?: string
+          is_featured?: boolean
+          options?: Json
+          question?: string
+          university_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campus_polls_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       comments: {
         Row: {
           content: string
@@ -121,6 +165,94 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_rsvps: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_rsvps_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          category: string
+          created_at: string
+          creator_id: string | null
+          description: string | null
+          event_date: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          location: string | null
+          max_attendees: number | null
+          title: string
+          university_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          creator_id?: string | null
+          description?: string | null
+          event_date: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          location?: string | null
+          max_attendees?: number | null
+          title: string
+          university_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          creator_id?: string | null
+          description?: string | null
+          event_date?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          location?: string | null
+          max_attendees?: number | null
+          title?: string
+          university_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_university_id_fkey"
+            columns: ["university_id"]
+            isOneToOne: false
+            referencedRelation: "universities"
             referencedColumns: ["id"]
           },
         ]
@@ -275,6 +407,71 @@ export type Database = {
         }
         Relationships: []
       }
+      photo_verifications: {
+        Row: {
+          created_at: string
+          id: string
+          rejection_reason: string | null
+          selfie_url: string
+          status: string
+          user_id: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rejection_reason?: string | null
+          selfie_url: string
+          status?: string
+          user_id: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rejection_reason?: string | null
+          selfie_url?: string
+          status?: string
+          user_id?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: []
+      }
+      poll_votes: {
+        Row: {
+          created_at: string
+          id: string
+          option_index: number
+          poll_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          option_index: number
+          poll_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          option_index?: number
+          poll_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_votes_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "campus_polls"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           author_id: string | null
@@ -318,6 +515,100 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      quiz_questions: {
+        Row: {
+          id: string
+          options: Json
+          order_index: number
+          question: string
+          quiz_id: string
+        }
+        Insert: {
+          id?: string
+          options?: Json
+          order_index?: number
+          question: string
+          quiz_id: string
+        }
+        Update: {
+          id?: string
+          options?: Json
+          order_index?: number
+          question?: string
+          quiz_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_questions_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_responses: {
+        Row: {
+          answers: Json
+          completed_at: string
+          id: string
+          personality_type: string | null
+          quiz_id: string
+          user_id: string
+        }
+        Insert: {
+          answers?: Json
+          completed_at?: string
+          id?: string
+          personality_type?: string | null
+          quiz_id: string
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          completed_at?: string
+          id?: string
+          personality_type?: string | null
+          quiz_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_responses_quiz_id_fkey"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quizzes: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          title: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          title?: string
+        }
+        Relationships: []
       }
       reactions: {
         Row: {
@@ -446,6 +737,39 @@ export type Database = {
           },
         ]
       }
+      spark_of_day: {
+        Row: {
+          compatibility_score: number | null
+          created_at: string
+          id: string
+          matched_user_id: string
+          revealed: boolean
+          revealed_at: string | null
+          spark_date: string
+          user_id: string
+        }
+        Insert: {
+          compatibility_score?: number | null
+          created_at?: string
+          id?: string
+          matched_user_id: string
+          revealed?: boolean
+          revealed_at?: string | null
+          spark_date?: string
+          user_id: string
+        }
+        Update: {
+          compatibility_score?: number | null
+          created_at?: string
+          id?: string
+          matched_user_id?: string
+          revealed?: boolean
+          revealed_at?: string | null
+          spark_date?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       trust_scores: {
         Row: {
           created_at: string
@@ -509,6 +833,30 @@ export type Database = {
           is_active?: boolean
           name?: string
           verification_method?: string
+        }
+        Relationships: []
+      }
+      user_connections: {
+        Row: {
+          connection_type: string
+          created_at: string
+          id: string
+          user_a_id: string
+          user_b_id: string
+        }
+        Insert: {
+          connection_type?: string
+          created_at?: string
+          id?: string
+          user_a_id: string
+          user_b_id: string
+        }
+        Update: {
+          connection_type?: string
+          created_at?: string
+          id?: string
+          user_a_id?: string
+          user_b_id?: string
         }
         Relationships: []
       }
@@ -582,11 +930,14 @@ export type Database = {
           id_card_back_url: string | null
           id_card_front_url: string | null
           phone_number: string | null
+          photo_verified: boolean | null
           university_id: string | null
           updated_at: string | null
           verification_completed_at: string | null
           verification_status: string | null
           verification_submitted_at: string | null
+          voice_intro_duration: number | null
+          voice_intro_url: string | null
         }
         Insert: {
           address?: string | null
@@ -601,11 +952,14 @@ export type Database = {
           id_card_back_url?: string | null
           id_card_front_url?: string | null
           phone_number?: string | null
+          photo_verified?: boolean | null
           university_id?: string | null
           updated_at?: string | null
           verification_completed_at?: string | null
           verification_status?: string | null
           verification_submitted_at?: string | null
+          voice_intro_duration?: number | null
+          voice_intro_url?: string | null
         }
         Update: {
           address?: string | null
@@ -620,11 +974,14 @@ export type Database = {
           id_card_back_url?: string | null
           id_card_front_url?: string | null
           phone_number?: string | null
+          photo_verified?: boolean | null
           university_id?: string | null
           updated_at?: string | null
           verification_completed_at?: string | null
           verification_status?: string | null
           verification_submitted_at?: string | null
+          voice_intro_duration?: number | null
+          voice_intro_url?: string | null
         }
         Relationships: [
           {
