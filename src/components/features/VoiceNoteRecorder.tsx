@@ -9,9 +9,10 @@ import { toast } from 'sonner';
 interface VoiceNoteRecorderProps {
   existingUrl?: string | null;
   onUpdate?: () => void;
+  compact?: boolean;
 }
 
-export const VoiceNoteRecorder = ({ existingUrl, onUpdate }: VoiceNoteRecorderProps) => {
+export const VoiceNoteRecorder = ({ existingUrl, onUpdate, compact = false }: VoiceNoteRecorderProps) => {
   const { userProfile } = useAuth();
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -155,6 +156,64 @@ export const VoiceNoteRecorder = ({ existingUrl, onUpdate }: VoiceNoteRecorderPr
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+
+  if (compact) {
+    return (
+      <div className="space-y-3">
+        <p className="text-xs text-muted-foreground">
+          Record a 30-second voice intro
+        </p>
+        
+        <div className="flex items-center justify-center gap-2 flex-wrap">
+          {isRecording ? (
+            <>
+              <div className="flex items-center gap-1.5">
+                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                <span className="font-mono text-xs">{formatTime(recordingTime)}</span>
+              </div>
+              <Button variant="destructive" size="sm" className="h-7 text-xs" onClick={stopRecording}>
+                <Square className="h-3 w-3 mr-1" />
+                Stop
+              </Button>
+            </>
+          ) : audioUrl ? (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 text-xs"
+                onClick={isPlaying ? pauseAudio : playAudio}
+              >
+                {isPlaying ? <Pause className="h-3 w-3 mr-1" /> : <Play className="h-3 w-3 mr-1" />}
+                {isPlaying ? 'Pause' : 'Play'}
+              </Button>
+              
+              {audioBlob ? (
+                <>
+                  <Button size="sm" className="h-7 text-xs" onClick={handleUpload} disabled={uploading}>
+                    <Upload className="h-3 w-3 mr-1" />
+                    {uploading ? '...' : 'Save'}
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={discardRecording}>
+                    Discard
+                  </Button>
+                </>
+              ) : (
+                <Button variant="ghost" size="sm" className="h-7 text-xs text-destructive" onClick={handleDelete}>
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              )}
+            </>
+          ) : (
+            <Button onClick={startRecording} size="sm" className="h-7 text-xs">
+              <Mic className="h-3 w-3 mr-1" />
+              Record
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Card>
