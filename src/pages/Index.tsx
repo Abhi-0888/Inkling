@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { LandingPage } from '@/pages/LandingPage';
 import { AgeGate } from '@/components/auth/AgeGate';
@@ -16,6 +16,7 @@ import { BottomNav } from '@/components/layout/BottomNav';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { ProfileManager } from '@/components/profile/ProfileManager';
 import { IdentityVerificationForm } from '@/components/auth/IdentityVerificationForm';
+import { ensureBasicData } from '@/utils/seedData';
 
 const Index = () => {
   const { user, userProfile, loading, isPasswordRecovery, clearPasswordRecovery } = useAuth();
@@ -23,6 +24,13 @@ const Index = () => {
   const [activeTab, setActiveTab] = useState('feed');
   const [showProfile, setShowProfile] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
+
+  // Seed database with initial data when user logs in
+  useEffect(() => {
+    if (user?.id && userProfile?.verification_status === 'verified') {
+      ensureBasicData(user.id);
+    }
+  }, [user?.id, userProfile?.verification_status]);
 
   if (loading) {
     return (
