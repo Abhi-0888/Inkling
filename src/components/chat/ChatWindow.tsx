@@ -6,7 +6,7 @@ import { Send, Image, Dices } from 'lucide-react';
 import { blindDateService } from '@/services/blindDateService';
 import { matchingService } from '@/services/matchingService';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { IcebreakerPrompt, ICEBREAKERS } from './IcebreakerPrompt';
 import { ChatExpiryTimer } from './ChatExpiryTimer';
 import { MessageBubble } from './MessageBubble';

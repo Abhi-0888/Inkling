@@ -33,7 +33,7 @@ export const getTodaySpark = async (userId: string): Promise<SparkOfDay | null> 
 
   if (!data) return null;
 
-  // Fetch matched user info separately
+  // Fetch matched user info - only public fields
   const { data: matchedUser } = await supabase
     .from('users')
     .select('id, display_name, photo_verified')
