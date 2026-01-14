@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Heart, MessageCircle, Flag, Globe, School, Sparkles, MoreHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
 import { formatDistance } from 'date-fns';
-import { Post, Reaction } from '@/lib/supabase';
+import { PostWithStats } from '@/services/postService';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -17,13 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 interface PostCardProps {
-  post: Post & {
-    reactions?: Reaction[];
-    comments_count?: number;
-    comment_count?: number;
-    like_count?: number;
-    user_has_liked?: boolean;
-    user_reaction?: Reaction;
+  post: PostWithStats & {
     author?: { display_name: string };
   };
   onLike: (postId: string) => void;
@@ -42,9 +36,9 @@ export const PostCard = ({ post, onLike, onComment, onSecretLike }: PostCardProp
   const { userProfile } = useAuth();
   const { toast } = useToast();
 
-  const likesCount = post.like_count || post.reactions?.filter(r => r.type === 'like').length || 0;
-  const commentsCount = post.comment_count || post.comments_count || 0;
-  const isLiked = post.user_has_liked || !!post.user_reaction;
+  const likesCount = post.like_count || 0;
+  const commentsCount = post.comment_count || 0;
+  const isLiked = post.user_has_liked || false;
   const isLongContent = post.content.length > MAX_CONTENT_LENGTH;
   const displayContent = isLongContent && !isExpanded 
     ? post.content.slice(0, MAX_CONTENT_LENGTH) + '...'

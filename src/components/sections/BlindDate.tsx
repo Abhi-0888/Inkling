@@ -6,7 +6,7 @@ import { Eye, Heart, MessageCircle, Users, Clock } from 'lucide-react';
 import { blindDateService } from '@/services/blindDateService';
 import { ChatWindow } from '@/components/chat/ChatWindow';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 interface BlindDateSession {
   id: string;

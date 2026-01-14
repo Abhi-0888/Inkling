@@ -1,5 +1,29 @@
-import { supabase } from '@/lib/supabase';
-import { SecretLike, Match, Message } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
+
+interface SecretLike {
+  id: string;
+  source_user_id: string;
+  target_post_id: string | null;
+  target_user_id: string | null;
+  created_at: string;
+}
+
+interface Match {
+  id: string;
+  user_a_id: string | null;
+  user_b_id: string | null;
+  created_at: string;
+}
+
+interface Message {
+  id: string;
+  match_id: string | null;
+  sender_id: string | null;
+  content: string;
+  media_ref?: string | null;
+  created_at: string;
+  deleted_at?: string | null;
+}
 
 export interface SecretLikeInbox {
   id: string;

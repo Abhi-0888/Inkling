@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { User, Shield, CheckCircle, Clock, XCircle, LogOut, Key, Save, X, Mic, Camera, Award } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { ChangePasswordForm } from '@/components/auth/ChangePasswordForm';
 import { VoiceNoteRecorder } from '@/components/features/VoiceNoteRecorder';
 
