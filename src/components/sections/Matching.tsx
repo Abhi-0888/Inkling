@@ -154,33 +154,34 @@ export const Matching = () => {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] pb-20 overflow-hidden">
+    <div className="flex flex-col h-[calc(100vh-10rem)] pb-4 overflow-hidden">
       {/* Stats bar */}
-      <div className="text-center py-3 flex items-center justify-center gap-4">
-        <Badge variant="outline" className="gap-1.5">
+      <div className="text-center py-2 flex items-center justify-center gap-3">
+        <Badge variant="outline" className="gap-1.5 text-xs">
           <Sparkles className="h-3 w-3 text-primary" />
           {candidates.length - currentIndex} nearby
         </Badge>
-        <Badge variant="outline" className="gap-1.5 bg-orange-500/10 border-orange-500/30">
+        <Badge variant="outline" className="gap-1.5 bg-orange-500/10 border-orange-500/30 text-xs">
           <Zap className="h-3 w-3 text-orange-500 fill-current" />
           3 boosts left
         </Badge>
       </div>
       
       {/* Card Stack */}
-      <div className="flex-1 px-4 pb-4 flex items-center justify-center relative overflow-hidden">
+      <div className="flex-1 px-4 flex items-center justify-center relative overflow-hidden">
         {/* Background cards for stack effect */}
         {candidates.slice(currentIndex + 1, currentIndex + 3).map((_, i) => (
           <div
             key={`bg-${i}`}
-            className="absolute inset-x-4 top-1/2 -translate-y-1/2 h-[85%] max-w-md mx-auto"
+            className="absolute inset-x-6 max-w-sm mx-auto"
             style={{
-              transform: `translateY(calc(-50% + ${(i + 1) * 8}px)) scale(${1 - (i + 1) * 0.05})`,
-              opacity: 1 - (i + 1) * 0.2,
+              height: 'calc(100% - 1rem)',
+              transform: `translateY(${(i + 1) * 6}px) scale(${1 - (i + 1) * 0.04})`,
+              opacity: 1 - (i + 1) * 0.25,
               zIndex: -i - 1
             }}
           >
-            <Card className="h-full bg-card/50 rounded-3xl" />
+            <Card className="h-full bg-card/50 rounded-2xl" />
           </div>
         ))}
 
@@ -201,19 +202,19 @@ export const Matching = () => {
             }}
             exit={{ scale: 0.9, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
-            className="w-full max-w-md h-[85%] cursor-grab active:cursor-grabbing"
+            className="w-full max-w-sm h-[calc(100%-0.5rem)] cursor-grab active:cursor-grabbing"
           >
-            <Card className="relative overflow-hidden h-full shadow-2xl border-0 rounded-3xl group bg-card">
+            <Card className="relative overflow-hidden h-full shadow-2xl border-0 rounded-2xl group bg-card">
               {/* Swipe indicators */}
               <motion.div 
                 style={{ opacity: likeOpacity }}
-                className="absolute top-6 left-6 z-20 bg-green-500 text-white px-4 py-2 rounded-lg font-bold text-xl rotate-[-20deg] border-4 border-green-400"
+                className="absolute top-4 left-4 z-20 bg-green-500 text-white px-3 py-1.5 rounded-lg font-bold text-base rotate-[-20deg] border-2 border-green-400"
               >
                 LIKE 💚
               </motion.div>
               <motion.div 
                 style={{ opacity: nopeOpacity }}
-                className="absolute top-6 right-6 z-20 bg-red-500 text-white px-4 py-2 rounded-lg font-bold text-xl rotate-[20deg] border-4 border-red-400"
+                className="absolute top-4 right-4 z-20 bg-red-500 text-white px-3 py-1.5 rounded-lg font-bold text-base rotate-[20deg] border-2 border-red-400"
               >
                 NOPE ❌
               </motion.div>
@@ -222,15 +223,15 @@ export const Matching = () => {
               <div className={`absolute inset-0 bg-gradient-to-br ${currentCandidate.avatar_color || 'from-primary/30 to-accent/30'} opacity-50`} />
               
               {/* Content */}
-              <div className="relative h-full flex flex-col p-6 z-10 overflow-y-auto hide-scrollbar">
+              <div className="relative h-full flex flex-col p-4 z-10 overflow-y-auto hide-scrollbar">
                 
                 {/* Profile Section */}
-                <div className="flex flex-col items-center mb-6 mt-4">
+                <div className="flex flex-col items-center mb-4 mt-2">
                   <motion.div 
                     whileHover={{ scale: 1.05 }}
-                    className={`w-28 h-28 rounded-full bg-gradient-to-br ${currentCandidate.avatar_color || 'from-primary to-accent'} shadow-xl flex items-center justify-center mb-4 ring-4 ring-background`}
+                    className={`w-20 h-20 rounded-full bg-gradient-to-br ${currentCandidate.avatar_color || 'from-primary to-accent'} shadow-xl flex items-center justify-center mb-3 ring-4 ring-background`}
                   >
-                    <Sparkles className="h-14 w-14 text-white/90" />
+                    <Sparkles className="h-10 w-10 text-white/90" />
                   </motion.div>
                   
                   <div className="text-center space-y-1">
@@ -286,16 +287,16 @@ export const Matching = () => {
       </div>
 
       {/* Action buttons */}
-      <div className="h-20 px-4 flex items-center justify-center gap-4">
+      <div className="h-16 px-4 flex items-center justify-center gap-5 mt-2">
         <motion.div whileTap={{ scale: 0.9 }}>
           <Button
             onClick={() => handleSwipe('pass')}
             disabled={!!swiping}
             size="lg"
             variant="outline"
-            className="w-16 h-16 rounded-full border-2 border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive shadow-lg"
+            className="w-14 h-14 rounded-full border-2 border-destructive/30 text-destructive hover:bg-destructive/10 hover:border-destructive shadow-lg"
           >
-            <X className="h-8 w-8" />
+            <X className="h-7 w-7" />
           </Button>
         </motion.div>
         
@@ -304,9 +305,9 @@ export const Matching = () => {
             onClick={() => handleSwipe('super_like')}
             disabled={!!swiping}
             size="lg"
-            className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg -mt-4"
+            className="w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg -mt-2"
           >
-            <Star className="h-6 w-6 fill-current" />
+            <Star className="h-5 w-5 fill-current" />
           </Button>
         </motion.div>
         
@@ -315,9 +316,9 @@ export const Matching = () => {
             onClick={() => handleSwipe('like')}
             disabled={!!swiping}
             size="lg"
-            className="w-16 h-16 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/30"
+            className="w-14 h-14 rounded-full bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/30"
           >
-            <Heart className="h-8 w-8 fill-current" />
+            <Heart className="h-7 w-7 fill-current" />
           </Button>
         </motion.div>
       </div>
