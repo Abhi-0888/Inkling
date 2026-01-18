@@ -9,10 +9,12 @@ interface BottomNavProps {
 }
 
 export const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
-  const tabs = [
+  const leftTabs = [
     { id: 'feed', icon: Home, label: 'Feed' },
     { id: 'discover', icon: Sparkles, label: 'Discover' },
-    { id: 'blind-date', icon: Users, label: 'Blind Date', highlight: true },
+  ];
+  
+  const rightTabs = [
     { id: 'matching', icon: Heart, label: 'Match' },
     { id: 'chatting', icon: MessageCircle, label: 'Chat' },
   ];
@@ -56,29 +58,29 @@ export const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
 
       {/* Main nav bar */}
       <div className="bg-card/95 backdrop-blur-lg border-t border-border shadow-lg pt-1 pb-2">
-        <div className="flex items-end justify-around px-1 max-w-lg mx-auto">
-          {tabs.slice(0, 2).map(({ id, icon: Icon, label, highlight }) => (
+        <div className="flex items-end justify-around px-2 max-w-lg mx-auto">
+          {/* Left tabs */}
+          {leftTabs.map(({ id, icon: Icon, label }) => (
             <NavItem 
               key={id} 
               id={id} 
               icon={Icon} 
               label={label} 
-              highlight={highlight}
               isActive={activeTab === id}
               onClick={() => onTabChange(id)}
             />
           ))}
           
           {/* Spacer for center FAB */}
-          <div className="w-14" />
+          <div className="w-16" />
           
-          {tabs.slice(2).map(({ id, icon: Icon, label, highlight }) => (
+          {/* Right tabs */}
+          {rightTabs.map(({ id, icon: Icon, label }) => (
             <NavItem 
               key={id} 
               id={id} 
               icon={Icon} 
               label={label} 
-              highlight={highlight}
               isActive={activeTab === id}
               onClick={() => onTabChange(id)}
             />
@@ -93,17 +95,16 @@ interface NavItemProps {
   id: string;
   icon: React.ElementType;
   label: string;
-  highlight?: boolean;
   isActive: boolean;
   onClick: () => void;
 }
 
-const NavItem = ({ id, icon: Icon, label, highlight, isActive, onClick }: NavItemProps) => (
+const NavItem = ({ id, icon: Icon, label, isActive, onClick }: NavItemProps) => (
   <motion.button
     whileTap={{ scale: 0.9 }}
     onClick={onClick}
     className={cn(
-      "relative flex flex-col items-center justify-center gap-0.5 py-1.5 px-2 rounded-xl transition-all duration-200 min-w-[52px]",
+      "relative flex flex-col items-center justify-center gap-0.5 py-1.5 px-3 rounded-xl transition-all duration-200 min-w-[56px]",
       isActive 
         ? "text-primary" 
         : "text-muted-foreground hover:text-foreground"
@@ -112,33 +113,19 @@ const NavItem = ({ id, icon: Icon, label, highlight, isActive, onClick }: NavIte
     {isActive && (
       <motion.div
         layoutId="activeTab"
-        className={cn(
-          "absolute inset-0 rounded-xl",
-          highlight 
-            ? "bg-gradient-to-br from-pink-500/15 to-purple-500/15" 
-            : "bg-primary/10"
-        )}
+        className="absolute inset-0 rounded-xl bg-primary/10"
         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
       />
     )}
-    <div className={cn(
-      "relative z-10 p-0.5 rounded-full transition-all",
-      highlight && !isActive && "bg-gradient-to-br from-pink-500/10 to-purple-500/10"
-    )}>
-      <Icon className={cn(
-        "h-5 w-5 transition-all",
-        isActive && "scale-110",
-        highlight && "text-pink-500"
-      )} />
-    </div>
+    <Icon className={cn(
+      "h-5 w-5 relative z-10 transition-all",
+      isActive && "scale-110"
+    )} />
     <span className={cn(
       "relative z-10 text-[10px] font-medium transition-all",
       isActive && "font-semibold"
     )}>
       {label}
     </span>
-    {highlight && !isActive && (
-      <span className="absolute top-0.5 right-1 w-1.5 h-1.5 bg-pink-500 rounded-full animate-pulse" />
-    )}
   </motion.button>
 );
