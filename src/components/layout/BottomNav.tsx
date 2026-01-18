@@ -21,71 +21,75 @@ export const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
   ];
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50">
-      {/* Dark Desire FAB - positioned above the nav bar */}
-      <div className="absolute left-1/2 -translate-x-1/2 -top-7 z-10">
-        <motion.button
-          whileHover={{ scale: 1.08, y: -2 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => onTabChange('dark-desire')}
-          className={cn(
-            "relative w-[52px] h-[52px] rounded-full shadow-xl flex items-center justify-center transition-all duration-300",
-            activeTab === 'dark-desire'
-              ? "bg-gradient-to-br from-orange-500 via-red-500 to-pink-600 shadow-orange-500/40"
-              : "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 hover:from-orange-500 hover:via-red-500 hover:to-pink-600 hover:shadow-orange-500/30"
-          )}
-        >
-          {/* Glow ring effect */}
-          {activeTab === 'dark-desire' && (
-            <motion.div 
-              className="absolute inset-0 rounded-full bg-gradient-to-br from-orange-400 to-red-500 opacity-40"
-              animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0, 0.4] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
-          )}
-          <Flame className={cn(
-            "h-6 w-6 text-white relative z-10",
-            activeTab === 'dark-desire' && "drop-shadow-lg"
-          )} />
-        </motion.button>
-        {/* Label */}
-        <span className={cn(
-          "absolute -bottom-4 left-1/2 -translate-x-1/2 text-[9px] font-semibold whitespace-nowrap transition-colors",
-          activeTab === 'dark-desire' ? "text-orange-500" : "text-muted-foreground"
-        )}>
-          Confess
-        </span>
-      </div>
-
-      {/* Main nav bar */}
-      <div className="bg-card/95 backdrop-blur-lg border-t border-border shadow-lg pt-1 pb-2">
-        <div className="flex items-end justify-around px-2 max-w-lg mx-auto">
+    <div className="fixed bottom-0 left-0 right-0 z-50 pb-safe">
+      {/* Main nav bar with elevated FAB */}
+      <div className="bg-card/95 backdrop-blur-lg border-t border-border shadow-lg">
+        <div className="flex items-end justify-between px-3 max-w-lg mx-auto relative">
           {/* Left tabs */}
-          {leftTabs.map(({ id, icon: Icon, label }) => (
-            <NavItem 
-              key={id} 
-              id={id} 
-              icon={Icon} 
-              label={label} 
-              isActive={activeTab === id}
-              onClick={() => onTabChange(id)}
-            />
-          ))}
+          <div className="flex items-end gap-1">
+            {leftTabs.map(({ id, icon: Icon, label }) => (
+              <NavItem 
+                key={id} 
+                id={id} 
+                icon={Icon} 
+                label={label} 
+                isActive={activeTab === id}
+                onClick={() => onTabChange(id)}
+              />
+            ))}
+          </div>
           
-          {/* Spacer for center FAB */}
-          <div className="w-16" />
+          {/* Center FAB - elevated */}
+          <div className="absolute left-1/2 -translate-x-1/2 -top-6 flex flex-col items-center">
+            <motion.button
+              whileHover={{ scale: 1.08, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => onTabChange('dark-desire')}
+              className={cn(
+                "relative w-14 h-14 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 border-4 border-card",
+                activeTab === 'dark-desire'
+                  ? "bg-gradient-to-br from-orange-500 via-red-500 to-pink-600 shadow-orange-500/40"
+                  : "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 hover:from-orange-500 hover:via-red-500 hover:to-pink-600 hover:shadow-orange-500/30"
+              )}
+            >
+              {/* Glow ring effect */}
+              {activeTab === 'dark-desire' && (
+                <motion.div 
+                  className="absolute inset-0 rounded-full bg-gradient-to-br from-orange-400 to-red-500 opacity-40"
+                  animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
+              )}
+              <Flame className={cn(
+                "h-6 w-6 text-white relative z-10",
+                activeTab === 'dark-desire' && "drop-shadow-lg"
+              )} />
+            </motion.button>
+          </div>
+          
+          {/* Center spacer */}
+          <div className="w-20 py-2">
+            <span className={cn(
+              "block text-center text-[9px] font-semibold mt-8 transition-colors",
+              activeTab === 'dark-desire' ? "text-orange-500" : "text-muted-foreground"
+            )}>
+              Confess
+            </span>
+          </div>
           
           {/* Right tabs */}
-          {rightTabs.map(({ id, icon: Icon, label }) => (
-            <NavItem 
-              key={id} 
-              id={id} 
-              icon={Icon} 
-              label={label} 
-              isActive={activeTab === id}
-              onClick={() => onTabChange(id)}
-            />
-          ))}
+          <div className="flex items-end gap-1">
+            {rightTabs.map(({ id, icon: Icon, label }) => (
+              <NavItem 
+                key={id} 
+                id={id} 
+                icon={Icon} 
+                label={label} 
+                isActive={activeTab === id}
+                onClick={() => onTabChange(id)}
+              />
+            ))}
+          </div>
         </div>
       </div>
     </div>
