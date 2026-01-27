@@ -3,6 +3,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Heart, MessageCircle, Flag, Globe, School, Sparkles, MoreHorizontal, ChevronDown, ChevronUp } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistance } from 'date-fns';
 import { PostWithStats } from '@/services/postService';
 import { useAuth } from '@/contexts/AuthContext';
@@ -33,8 +34,8 @@ const renderContentWithHashtags = (text: string) => {
   return parts.map((part, index) => {
     if (part.startsWith('#')) {
       return (
-        <span 
-          key={index} 
+        <span
+          key={index}
           className="text-primary font-medium hover:underline cursor-pointer"
         >
           {part}
@@ -58,7 +59,7 @@ export const PostCard = ({ post, onLike, onComment, onSecretLike }: PostCardProp
   const commentsCount = post.comment_count || 0;
   const isLiked = post.user_has_liked || false;
   const isLongContent = post.content.length > MAX_CONTENT_LENGTH;
-  const displayContent = isLongContent && !isExpanded 
+  const displayContent = isLongContent && !isExpanded
     ? post.content.slice(0, MAX_CONTENT_LENGTH) + '...'
     : post.content;
 
@@ -98,19 +99,31 @@ export const PostCard = ({ post, onLike, onComment, onSecretLike }: PostCardProp
 
   return (
     <>
-      <Card 
+      <motion.div
+        layout
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95 }}
         className={cn(
-            "border shadow-sm backdrop-blur-sm hover:shadow-md transition-all duration-300 animate-fade-in group relative overflow-hidden",
-            getGradientClass()
+          "border shadow-sm backdrop-blur-sm hover:shadow-lg transition-shadow duration-300 group relative overflow-hidden rounded-xl",
+          getGradientClass()
         )}
         onDoubleClick={handleDoubleTap}
       >
         {/* Double Tap Heart Animation Overlay */}
-        {isDoubleTapAnimating && (
-            <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
-                <Heart className="w-24 h-24 text-red-500 fill-current animate-ping" />
-            </div>
-        )}
+        <AnimatePresence>
+          {isDoubleTapAnimating && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1.2 }}
+              exit={{ opacity: 0, scale: 1.5 }}
+              transition={{ duration: 0.5, ease: "easeOut" }}
+              className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none"
+            >
+              <Heart className="w-24 h-24 text-red-500 fill-current drop-shadow-2xl" />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <CardContent className="p-4 space-y-3 relative z-10">
           {/* Header */}
@@ -143,7 +156,7 @@ export const PostCard = ({ post, onLike, onComment, onSecretLike }: PostCardProp
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem 
+                  <DropdownMenuItem
                     className="text-destructive focus:text-destructive cursor-pointer"
                     onClick={() => setShowReportDialog(true)}
                   >
@@ -174,13 +187,13 @@ export const PostCard = ({ post, onLike, onComment, onSecretLike }: PostCardProp
                 )}
               </Button>
             )}
-            
+
             {post.images && post.images.length > 0 && (
               <div className="grid grid-cols-2 gap-2">
                 {post.images.map((image, index) => (
-                  <img 
+                  <img
                     key={index}
-                    src={image} 
+                    src={image}
                     alt="Post content"
                     className="rounded-lg w-full h-32 object-cover transition-transform duration-200 hover:scale-[1.02]"
                   />
@@ -192,30 +205,34 @@ export const PostCard = ({ post, onLike, onComment, onSecretLike }: PostCardProp
           {/* Actions */}
           <div className="flex items-center justify-between pt-3 border-t border-border/50">
             <div className="flex items-center space-x-1">
-              <Button
-                variant="ghost"
-                size="sm"
+              <motion.button
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
                 onClick={handleLike}
                 className={cn(
-                  "flex items-center gap-1.5 transition-all duration-200",
-                  isLiked && "text-red-500 hover:text-red-600"
+                  "flex items-center gap-1.5 p-2 rounded-full transition-colors",
+                  isLiked ? "text-red-500 bg-red-500/10" : "text-muted-foreground hover:bg-muted"
                 )}
               >
-                <Heart 
-                  className={cn(
-                    "h-5 w-5 transition-transform", 
-                    isLiked && "fill-current",
-                    isLikeAnimating && "animate-heart-pulse"
-                  )} 
-                />
+                <motion.div
+                  animate={isLiked ? { scale: [1, 1.2, 1] } : {}}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Heart
+                    className={cn(
+                      "h-5 w-5",
+                      isLiked && "fill-current"
+                    )}
+                  />
+                </motion.div>
                 <span className="text-sm font-medium">{likesCount}</span>
-              </Button>
-              
+              </motion.button>
+
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => onComment(post.id)}
-                className="flex items-center gap-1.5 transition-all duration-200"
+                className="flex items-center gap-1.5 transition-all duration-200 hover:bg-primary/10 hover:text-primary"
               >
                 <MessageCircle className="h-5 w-5" />
                 <span className="text-sm font-medium">{commentsCount}</span>
@@ -233,38 +250,45 @@ export const PostCard = ({ post, onLike, onComment, onSecretLike }: PostCardProp
                   <Sparkles className="h-4 w-4 mr-1.5" />
                   <span className="text-sm font-medium">Vibe</span>
                 </Button>
-                
-                {showSecretLike && (
-                  <div className="absolute right-0 bottom-full mb-2 bg-popover border border-border rounded-xl p-4 shadow-lg z-10 w-72 animate-scale-in">
-                    <p className="text-sm font-semibold mb-2">Send a secret like?</p>
-                    <p className="text-xs text-muted-foreground mb-4">
-                      They'll only know if they like you back. Then you can chat privately!
-                    </p>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        onClick={handleSecretLike}
-                        className="flex-1 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 transition-all duration-200"
-                      >
-                        <Sparkles className="h-4 w-4 mr-1" />
-                        Send
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setShowSecretLike(false)}
-                        className="flex-1"
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  </div>
-                )}
+
+                <AnimatePresence>
+                  {showSecretLike && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                      className="absolute right-0 bottom-full mb-2 bg-popover border border-border rounded-xl p-4 shadow-lg z-10 w-72"
+                    >
+                      <p className="text-sm font-semibold mb-2">Send a secret like?</p>
+                      <p className="text-xs text-muted-foreground mb-4">
+                        They'll only know if they like you back. Then you can chat privately!
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          onClick={handleSecretLike}
+                          className="flex-1 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 transition-all duration-200"
+                        >
+                          <Sparkles className="h-4 w-4 mr-1" />
+                          Send
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setShowSecretLike(false)}
+                          className="flex-1"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             )}
           </div>
         </CardContent>
-      </Card>
+      </motion.div>
 
       <ReportDialog
         isOpen={showReportDialog}
