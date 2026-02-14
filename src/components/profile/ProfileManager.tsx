@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { ChangePasswordForm } from '@/components/auth/ChangePasswordForm';
 import { VoiceNoteRecorder } from '@/components/features/VoiceNoteRecorder';
+import { isProfileComplete } from '@/utils/profileCompletionUtils';
 
 interface ProfileManagerProps {
   onClose: () => void;
@@ -61,7 +62,7 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
       setClassOfYear((userProfile as any).class_of_year?.toString() || '');
       setInterests((userProfile as any).interests || []);
       setUnpopularOpinion((userProfile as any).unpopular_opinion || '');
-      
+
       // Load extra profile data from localStorage
       const savedExtras = localStorage.getItem(`user_profile_extras_${user?.id}`);
       if (savedExtras) {
@@ -75,7 +76,10 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
 
   const handleSaveProfile = async () => {
     if (!user) return;
-    
+
+    // Check if profile was incomplete before saving
+    const wasIncomplete = !isProfileComplete(userProfile);
+
     setSaving(true);
     try {
       const updateData: any = {
@@ -100,9 +104,18 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
         promptAnswer
       }));
 
+      // Check if profile is now complete
+      const isNowComplete = !!(
+        bio && bio.trim().length > 0 &&
+        classOfYear &&
+        interests.length > 0
+      );
+
       toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully",
+        title: wasIncomplete && isNowComplete ? "Profile complete! 🎉" : "Profile updated",
+        description: wasIncomplete && isNowComplete
+          ? "You can now access matching features."
+          : "Your profile has been updated successfully",
       });
     } catch (error: any) {
       toast({
@@ -201,7 +214,7 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
         </Button>
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center relative overflow-hidden">
-             <div className={`absolute inset-0 bg-gradient-to-br ${avatarColor}`} />
+            <div className={`absolute inset-0 bg-gradient-to-br ${avatarColor}`} />
             <User className="h-8 w-8 text-white relative z-10" />
           </div>
           <CardTitle className="text-xl font-bold">
@@ -330,8 +343,8 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
                 maxLength={120}
               />
             </div>
-            <Button 
-              onClick={handleSaveProfile} 
+            <Button
+              onClick={handleSaveProfile}
               disabled={saving}
               className="w-full h-9"
               size="sm"
@@ -348,7 +361,7 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
                 <p className="text-xs text-muted-foreground">Email</p>
                 <p className="text-sm font-medium">{user?.email}</p>
               </div>
-              
+
               {userProfile?.full_name && (
                 <div>
                   <p className="text-xs text-muted-foreground">Full Name</p>
@@ -435,7 +448,7 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
           {showChangePassword ? (
             <div className="space-y-2">
               <h4 className="font-medium text-xs">Change Password</h4>
-              <ChangePasswordForm 
+              <ChangePasswordForm
                 onSuccess={() => {
                   setShowChangePassword(false);
                 }}
@@ -443,8 +456,8 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
               />
             </div>
           ) : (
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setShowChangePassword(true)}
               className="w-full h-9"
               size="sm"
@@ -455,7 +468,7 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
           )}
 
           {/* Logout Button */}
-          <Button 
+          <Button
             onClick={handleLogout}
             disabled={loading}
             variant="destructive"

@@ -3,12 +3,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Heart, MessageCircle, Users, Clock, Sparkles, Shield, Timer, Shuffle } from 'lucide-react';
+import { Eye, Heart, MessageCircle, Users, Clock, Sparkles, Shield, Timer, Shuffle, UserCircle } from 'lucide-react';
 import { blindDateService } from '@/services/blindDateService';
 import { ChatWindow } from '@/components/chat/ChatWindow';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
+import { isProfileComplete } from '@/utils/profileCompletionUtils';
 
 interface BlindDateSession {
   id: string;
@@ -21,7 +22,7 @@ interface BlindDateSession {
 }
 
 export const BlindDate = () => {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const { toast } = useToast();
   const [isSearching, setIsSearching] = useState(false);
   const [currentSession, setCurrentSession] = useState<BlindDateSession | null>(null);
@@ -83,7 +84,7 @@ export const BlindDate = () => {
     setIsSearching(true);
     try {
       const session = await blindDateService.findMatch();
-      
+
       if (session && session.user_a_id !== session.user_b_id) {
         setCurrentSession({
           ...session,
@@ -181,10 +182,43 @@ export const BlindDate = () => {
     }
   };
 
+  // Check if profile is complete
+  if (!isProfileComplete(userProfile)) {
+    return (
+      <div className="min-h-screen bg-background pb-24 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-md"
+        >
+          <Card className="p-8 text-center space-y-6 border-0 shadow-xl">
+            <motion.div
+              animate={{ scale: [1, 1.1, 1] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="mx-auto w-20 h-20 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center shadow-lg"
+            >
+              <UserCircle className="h-10 w-10 text-white" />
+            </motion.div>
+
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold">Complete your profile</h2>
+              <p className="text-muted-foreground">
+                Complete your profile to start matching.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Please add your bio, class of year, and interests to continue.
+              </p>
+            </div>
+          </Card>
+        </motion.div>
+      </div>
+    );
+  }
+
   if (currentSession && currentSession.status === 'active') {
     return (
       <div className="min-h-screen bg-background pb-20 flex flex-col">
-        <motion.div 
+        <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           className="p-3 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-pink-500/10 backdrop-blur-md border-b border-pink-500/20 flex items-center justify-between sticky top-0 z-10"
@@ -208,8 +242,8 @@ export const BlindDate = () => {
         </motion.div>
 
         <div className="flex-1 overflow-hidden">
-          <ChatWindow 
-            type="blind_date" 
+          <ChatWindow
+            type="blind_date"
             sessionId={currentSession.id}
             expiresAt={currentSession.expires_at}
             onSessionEnd={() => setCurrentSession(null)}
@@ -221,7 +255,7 @@ export const BlindDate = () => {
 
   return (
     <div className="min-h-screen bg-background pb-24 flex items-center justify-center p-4">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="w-full max-w-md"
@@ -230,10 +264,10 @@ export const BlindDate = () => {
           {/* Background decoration */}
           <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-pink-500/20 to-purple-500/20 rounded-full -mr-20 -mt-20 blur-3xl" />
           <div className="absolute bottom-0 left-0 w-32 h-32 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full -ml-16 -mb-16 blur-3xl" />
-          
+
           <div className="relative z-10 space-y-6">
             {/* Icon */}
-            <motion.div 
+            <motion.div
               animate={isSearching ? { rotate: 360 } : {}}
               transition={isSearching ? { duration: 3, repeat: Infinity, ease: "linear" } : {}}
               className="mx-auto w-24 h-24 bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-500 rounded-full flex items-center justify-center shadow-2xl"
@@ -244,14 +278,14 @@ export const BlindDate = () => {
                 <Heart className="h-10 w-10 text-white fill-white/30" />
               )}
             </motion.div>
-            
+
             {/* Title */}
             <div className="space-y-2">
               <h2 className="text-2xl font-bold bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 bg-clip-text text-transparent">
                 Blind Date
               </h2>
               <p className="text-muted-foreground text-sm leading-relaxed">
-                Get matched with someone random for an <span className="text-pink-500 font-medium">anonymous 24-hour chat</span>. 
+                Get matched with someone random for an <span className="text-pink-500 font-medium">anonymous 24-hour chat</span>.
                 No profiles, no names—just pure conversation.
               </p>
             </div>
@@ -300,7 +334,7 @@ export const BlindDate = () => {
                       We'll notify you once your blind date is found.
                     </p>
                   </div>
-                  <Button 
+                  <Button
                     onClick={cancelSearch}
                     variant="outline"
                     className="w-full border-pink-500/30 hover:bg-pink-500/10"
@@ -315,7 +349,7 @@ export const BlindDate = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                 >
-                  <Button 
+                  <Button
                     onClick={startBlindDate}
                     className="w-full h-12 text-base font-semibold bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 hover:from-pink-600 hover:via-purple-600 hover:to-indigo-600 shadow-lg shadow-pink-500/25"
                     size="lg"

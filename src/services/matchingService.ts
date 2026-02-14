@@ -101,8 +101,18 @@ export const matchingService = {
       // Filter out already matched users
       const availableUsers = (users || []).filter(u => !matchedUserIds.has(u.id));
 
+      // Filter out users with incomplete profiles (must have bio, class_of_year, and interests)
+      const completeProfiles = availableUsers.filter(u =>
+        u.bio &&
+        u.bio.trim().length > 0 &&
+        u.class_of_year &&
+        u.interests &&
+        Array.isArray(u.interests) &&
+        u.interests.length > 0
+      );
+
       // Return candidates with real user information
-      return availableUsers.map((user: any, index) => {
+      return completeProfiles.map((user: any, index) => {
         const idSum = user.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
         const colorIndex = idSum % AVATAR_COLORS.length;
 
@@ -147,7 +157,7 @@ export const matchingService = {
               user_a_id: user.id,
               user_b_id: candidateId
             });
-          
+
           if (error) {
             console.error('Error creating match:', error);
             throw error;
@@ -203,7 +213,7 @@ export const matchingService = {
             user_a_id: user.id,
             user_b_id: candidateId
           });
-        
+
         if (error) {
           console.error('Error creating match:', error);
           throw error;
