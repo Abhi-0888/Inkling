@@ -26,6 +26,11 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
   const [avatarColor, setAvatarColor] = useState('from-primary to-accent');
   const [promptQuestion, setPromptQuestion] = useState("My simple pleasure is...");
   const [promptAnswer, setPromptAnswer] = useState("");
+  const [bio, setBio] = useState('');
+  const [classOfYear, setClassOfYear] = useState('');
+  const [interests, setInterests] = useState<string[]>([]);
+  const [unpopularOpinion, setUnpopularOpinion] = useState('');
+  const [interestInput, setInterestInput] = useState('');
 
   const AVATAR_COLORS = [
     'from-pink-500 to-rose-500',
@@ -52,6 +57,10 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
       if (profileGender && ['male', 'female', 'other'].includes(profileGender)) {
         setGender(profileGender);
       }
+      setBio((userProfile as any).bio || '');
+      setClassOfYear((userProfile as any).class_of_year?.toString() || '');
+      setInterests((userProfile as any).interests || []);
+      setUnpopularOpinion((userProfile as any).unpopular_opinion || '');
       
       // Load extra profile data from localStorage
       const savedExtras = localStorage.getItem(`user_profile_extras_${user?.id}`);
@@ -69,9 +78,17 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
     
     setSaving(true);
     try {
+      const updateData: any = {
+        display_name: displayName,
+        gender,
+        bio: bio || null,
+        class_of_year: classOfYear ? parseInt(classOfYear) : null,
+        interests: interests.length > 0 ? interests : null,
+        unpopular_opinion: unpopularOpinion || null,
+      };
       const { error } = await supabase
         .from('users')
-        .update({ display_name: displayName, gender })
+        .update(updateData)
         .eq('id', user.id);
 
       if (error) throw error;
@@ -252,6 +269,66 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground">Class of Year</label>
+              <Input
+                value={classOfYear}
+                onChange={(e) => setClassOfYear(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                placeholder="e.g. 2026"
+                className="h-9"
+                maxLength={4}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground">Bio / Description</label>
+              <Input
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Looking for meaningful connections…"
+                className="h-9"
+                maxLength={150}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground">Interests</label>
+              <div className="flex flex-wrap gap-1.5 mb-1.5">
+                {interests.map((tag, i) => (
+                  <Badge key={i} variant="secondary" className="text-xs gap-1 cursor-pointer" onClick={() => setInterests(interests.filter((_, j) => j !== i))}>
+                    {tag} ×
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex gap-1.5">
+                <Input
+                  value={interestInput}
+                  onChange={(e) => setInterestInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && interestInput.trim() && interests.length < 8) {
+                      e.preventDefault();
+                      setInterests([...interests, interestInput.trim()]);
+                      setInterestInput('');
+                    }
+                  }}
+                  placeholder="Type & press Enter"
+                  className="h-9 flex-1"
+                />
+              </div>
+              <p className="text-[10px] text-muted-foreground">Max 8 interests. Click to remove.</p>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs text-muted-foreground">Unpopular Opinion</label>
+              <Input
+                value={unpopularOpinion}
+                onChange={(e) => setUnpopularOpinion(e.target.value)}
+                placeholder="Pineapple belongs on pizza…"
+                className="h-9"
+                maxLength={120}
+              />
             </div>
             <Button 
               onClick={handleSaveProfile} 

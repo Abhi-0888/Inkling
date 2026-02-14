@@ -920,6 +920,8 @@ export type Database = {
         Row: {
           address: string | null
           age_verified: boolean | null
+          bio: string | null
+          class_of_year: number | null
           created_at: string | null
           date_of_birth: string | null
           display_name: string | null
@@ -929,9 +931,11 @@ export type Database = {
           id: string
           id_card_back_url: string | null
           id_card_front_url: string | null
+          interests: string[] | null
           phone_number: string | null
           photo_verified: boolean | null
           university_id: string | null
+          unpopular_opinion: string | null
           updated_at: string | null
           verification_completed_at: string | null
           verification_status: string | null
@@ -942,6 +946,8 @@ export type Database = {
         Insert: {
           address?: string | null
           age_verified?: boolean | null
+          bio?: string | null
+          class_of_year?: number | null
           created_at?: string | null
           date_of_birth?: string | null
           display_name?: string | null
@@ -951,9 +957,11 @@ export type Database = {
           id?: string
           id_card_back_url?: string | null
           id_card_front_url?: string | null
+          interests?: string[] | null
           phone_number?: string | null
           photo_verified?: boolean | null
           university_id?: string | null
+          unpopular_opinion?: string | null
           updated_at?: string | null
           verification_completed_at?: string | null
           verification_status?: string | null
@@ -964,6 +972,8 @@ export type Database = {
         Update: {
           address?: string | null
           age_verified?: boolean | null
+          bio?: string | null
+          class_of_year?: number | null
           created_at?: string | null
           date_of_birth?: string | null
           display_name?: string | null
@@ -973,9 +983,11 @@ export type Database = {
           id?: string
           id_card_back_url?: string | null
           id_card_front_url?: string | null
+          interests?: string[] | null
           phone_number?: string | null
           photo_verified?: boolean | null
           university_id?: string | null
+          unpopular_opinion?: string | null
           updated_at?: string | null
           verification_completed_at?: string | null
           verification_status?: string | null
