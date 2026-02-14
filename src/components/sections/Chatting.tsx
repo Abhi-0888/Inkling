@@ -163,10 +163,12 @@ export const Chatting = () => {
                 {match.last_message && (
                   <div className="mt-3 pt-3 border-t border-border">
                     <p className="text-sm text-muted-foreground line-clamp-2">
-                      {match.last_message.content}
+                      {typeof match.last_message === 'string' 
+                        ? match.last_message 
+                        : 'Start your conversation...'}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      {formatTimeAgo(match.last_message.created_at)}
+                      {formatTimeAgo(match.created_at)}
                     </p>
                   </div>
                 )}
