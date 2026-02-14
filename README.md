@@ -1,73 +1,42 @@
-# Welcome to your Lovable project
+# Inkling
 
-## Project info
+Hey! Welcome to Inkling.
 
-**URL**: https://lovable.dev/projects/5b37e40f-d94d-46ba-8d5d-bfa294b39a27
+This is a social platform I'm building to help people connect in more interesting ways. It's not just another swiping app - I've got some cool features like "Blind Date" and "Dark Desire" (sounds mysterious, right?) alongside the usual feed and chat stuff.
 
-## How can I edit this code?
+## What's Inside?
 
-There are several ways of editing your application.
+I'm currently working on:
+- **Feed**: Share thoughts, comments, and stay updated.
+- **Matching**: Find people you vibe with.
+- **Blind Date**: A way to meet people without the initial bias.
+- **Chat**: Real-time messaging with icebreakers to get the conversation flowing.
+- **Profile Management**: Customizing your identity on the platform.
 
-**Use Lovable**
+## Tech Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/5b37e40f-d94d-46ba-8d5d-bfa294b39a27) and start prompting.
+I built this using some of my favorite tools:
+- **Frontend**: React (with TypeScript because types are life), Vite for that fast build speed.
+- **UI**: Tailwind CSS and shadcn/ui for the components.
+- **Backend**: Supabase for the database and auth.
 
-Changes made via Lovable will be committed automatically to this repo.
+## Getting Started
 
-**Use your preferred IDE**
+If you want to run this locally, it's pretty standard:
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+1. Clone the repo.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Fire up the dev server:
+   ```bash
+   npm run dev
+   ```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Contributing
 
-Follow these steps:
+It's just me working on this for now, but if you see something broken or have a cool idea, feel free to open an issue or PR!
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/5b37e40f-d94d-46ba-8d5d-bfa294b39a27) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+---
+*Built with ❤️*
