@@ -11,6 +11,7 @@ import { DarkDesire } from '@/components/sections/DarkDesire';
 import { BlindDate } from '@/components/sections/BlindDate';
 import { Matching } from '@/components/sections/Matching';
 import { Chatting } from '@/components/sections/Chatting';
+import { Discover } from '@/components/sections/Discover';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { AppHeader } from '@/components/layout/AppHeader';
 import { ProfileManager } from '@/components/profile/ProfileManager';
@@ -56,6 +57,7 @@ const Index = () => {
         <AppHeader activeTab={activeTab} onShowProfile={() => setShowProfile(true)} onTabChange={setActiveTab} />
         <div className="pt-14">
           {activeTab === 'feed' && <Feed onPostClick={() => {}} onShowProfile={() => setShowProfile(true)} />}
+          {activeTab === 'discover' && <Discover onShowProfile={() => setShowProfile(true)} />}
           {activeTab === 'dark-desire' && <DarkDesire onShowProfile={() => setShowProfile(true)} />}
           {activeTab === 'blind-date' && <BlindDate />}
           {activeTab === 'matching' && <Matching />}
