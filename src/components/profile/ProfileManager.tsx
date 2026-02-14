@@ -4,11 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { User, Shield, CheckCircle, Clock, XCircle, LogOut, Key, Save, X } from 'lucide-react';
+import { User, Shield, CheckCircle, Clock, XCircle, LogOut, Key, Save, X, Mic, Camera, Award } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
 import { ChangePasswordForm } from '@/components/auth/ChangePasswordForm';
+import { VoiceNoteRecorder } from '@/components/features/VoiceNoteRecorder';
 
 interface ProfileManagerProps {
   onClose: () => void;
@@ -316,7 +317,44 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
             </div>
           </div>
 
-          {/* Change Password Section */}
+          {/* Voice Intro Section */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Mic className="h-4 w-4 text-primary" />
+              <h3 className="font-semibold text-sm">Voice Introduction</h3>
+            </div>
+            <div className="bg-muted/30 rounded-lg p-3">
+              <VoiceNoteRecorder compact />
+            </div>
+          </div>
+
+          {/* Verification Badges */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Award className="h-4 w-4 text-primary" />
+              <h3 className="font-semibold text-sm">Badges & Verification</h3>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {userProfile.verification_status === 'verified' && (
+                <Badge className="bg-green-100 text-green-800">
+                  <CheckCircle className="h-3 w-3 mr-1" />
+                  ID Verified
+                </Badge>
+              )}
+              {userProfile.photo_verified && (
+                <Badge className="bg-blue-100 text-blue-800">
+                  <Camera className="h-3 w-3 mr-1" />
+                  Photo Verified
+                </Badge>
+              )}
+              {userProfile.voice_intro_url && (
+                <Badge className="bg-purple-100 text-purple-800">
+                  <Mic className="h-3 w-3 mr-1" />
+                  Voice Intro
+                </Badge>
+              )}
+            </div>
+          </div>
           {showChangePassword ? (
             <div className="space-y-2">
               <h4 className="font-medium text-xs">Change Password</h4>
