@@ -9,9 +9,10 @@ import { useToast } from '@/hooks/use-toast';
 
 interface SignInFormProps {
   onNeedAccount: () => void;
+  onForgotPassword: () => void;
 }
 
-export const SignInForm = ({ onNeedAccount }: SignInFormProps) => {
+export const SignInForm = ({ onNeedAccount, onForgotPassword }: SignInFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -68,7 +69,17 @@ export const SignInForm = ({ onNeedAccount }: SignInFormProps) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="password">Password</Label>
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={onForgotPassword}
+                  className="text-xs text-primary hover:text-primary/80 p-0 h-auto"
+                >
+                  Forgot password?
+                </Button>
+              </div>
               <Input
                 id="password"
                 type="password"
@@ -87,7 +98,7 @@ export const SignInForm = ({ onNeedAccount }: SignInFormProps) => {
               {loading ? "Signing in..." : "Sign In"}
             </Button>
 
-            <div className="text-center">
+            <div className="text-center space-y-2">
               <Button
                 type="button"
                 variant="link"
