@@ -10,11 +10,15 @@ import { BlindDate } from '@/components/sections/BlindDate';
 import { Matching } from '@/components/sections/Matching';
 import { Chatting } from '@/components/sections/Chatting';
 import { BottomNav } from '@/components/layout/BottomNav';
+import { ProfileManager } from '@/components/profile/ProfileManager';
+import { IdentityVerificationForm } from '@/components/auth/IdentityVerificationForm';
 
 const Index = () => {
   const { user, userProfile, loading, signOut } = useAuth();
   const [onboardingStep, setOnboardingStep] = useState<'landing' | 'signin' | 'age-gate' | 'signup'>('landing');
   const [activeTab, setActiveTab] = useState('feed');
+  const [showProfile, setShowProfile] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
 
   if (loading) {
     return (
@@ -26,14 +30,29 @@ const Index = () => {
 
   // If user is authenticated, show main app
   if (user) {
+    // Check if user needs to complete verification
+    if (userProfile?.verification_status === 'pending' && !showVerification) {
+      return (
+        <div className="min-h-screen bg-background">
+          <IdentityVerificationForm 
+            onVerificationSubmitted={() => setShowVerification(false)}
+          />
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-background">
-        {activeTab === 'feed' && <Feed onPostClick={() => {}} onLogout={signOut} />}
-        {activeTab === 'dark-desire' && <DarkDesire onLogout={signOut} />}
+        {activeTab === 'feed' && <Feed onPostClick={() => {}} onShowProfile={() => setShowProfile(true)} />}
+        {activeTab === 'dark-desire' && <DarkDesire onShowProfile={() => setShowProfile(true)} />}
         {activeTab === 'blind-date' && <BlindDate />}
         {activeTab === 'matching' && <Matching />}
         {activeTab === 'chatting' && <Chatting />}
         <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+        
+        {showProfile && (
+          <ProfileManager onClose={() => setShowProfile(false)} />
+        )}
       </div>
     );
   }
