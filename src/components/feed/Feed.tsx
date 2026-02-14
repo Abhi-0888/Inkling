@@ -148,52 +148,52 @@ export const Feed = ({ onPostClick }: FeedProps) => {
               <span>Campus</span>
             </TabsTrigger>
           </TabsList>
-        </Tabs>
-      </div>
 
-      {/* Feed Content */}
-      <div className="p-4 space-y-4">
-        <TabsContent value={activeTab} className="mt-0 space-y-4">
-          {loading ? (
-            <div className="space-y-4">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="animate-pulse">
-                  <div className="bg-muted rounded-lg h-32"></div>
+          {/* Feed Content */}
+          <div className="p-4 space-y-4">
+            <TabsContent value={activeTab} className="mt-0 space-y-4">
+              {loading ? (
+                <div className="space-y-4">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="bg-muted rounded-lg h-32"></div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          ) : posts.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                <Sparkles className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <h3 className="text-lg font-medium mb-2">No posts yet</h3>
-              <p className="text-muted-foreground mb-4">
-                Be the first to share something with your campus!
-              </p>
-              <Button 
-                onClick={() => setShowComposer(true)}
-                className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
-              >
-                Create First Post
-              </Button>
-            </div>
-          ) : (
-            posts.map(post => (
-              <PostCard
-                key={post.id}
-                post={{
-                  ...post,
-                  reactions: [],
-                  comments_count: post.comment_count
-                }}
-                onLike={() => handleLike(post.id)}
-                onComment={onPostClick}
-                onSecretLike={() => handleSecretLike(post.id)}
-              />
-            ))
-          )}
-        </TabsContent>
+              ) : posts.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Sparkles className="h-8 w-8 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-lg font-medium mb-2">No posts yet</h3>
+                  <p className="text-muted-foreground mb-4">
+                    Be the first to share something with your campus!
+                  </p>
+                  <Button 
+                    onClick={() => setShowComposer(true)}
+                    className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+                  >
+                    Create First Post
+                  </Button>
+                </div>
+              ) : (
+                posts.map(post => (
+                  <PostCard
+                    key={post.id}
+                    post={{
+                      ...post,
+                      reactions: [],
+                      comments_count: post.comment_count
+                    }}
+                    onLike={() => handleLike(post.id)}
+                    onComment={onPostClick}
+                    onSecretLike={() => handleSecretLike(post.id)}
+                  />
+                ))
+              )}
+            </TabsContent>
+          </div>
+        </Tabs>
       </div>
 
       {/* Post Composer Modal */}
