@@ -25,12 +25,20 @@ export const matchingService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Get current user's gender
+      // Get current user's gender and verification status
       const { data: currentUser } = await supabase
         .from('users')
-        .select('gender')
+        .select('gender, verification_status')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
+
+      if (!currentUser) {
+        throw new Error('User profile not found');
+      }
+
+      if (currentUser.verification_status !== 'verified') {
+        throw new Error('Please complete identity verification first');
+      }
 
       if (!currentUser?.gender) {
         throw new Error('Please set your gender in profile settings first');
@@ -38,6 +46,10 @@ export const matchingService = {
 
       // Get opposite gender users
       const oppositeGender = currentUser.gender === 'male' ? 'female' : currentUser.gender === 'female' ? 'male' : null;
+      
+      if (!oppositeGender) {
+        throw new Error('Matching is only available for male/female users');
+      }
       
       // Get users excluding current user and already matched users
       const { data: existingMatches } = await supabase
@@ -51,29 +63,36 @@ export const matchingService = {
 
       const { data: users, error } = await supabase
         .from('users')
-        .select('id, display_name, gender')
+        .select('id, display_name, gender, verification_status')
         .neq('id', user.id)
-        .eq('gender', oppositeGender || currentUser.gender)
+        .eq('gender', oppositeGender)
         .eq('verification_status', 'verified')
-        .limit(20);
+        .limit(50);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error querying users:', error);
+        throw error;
+      }
 
       // Filter out already matched users
       const availableUsers = (users || []).filter(u => !matchedUserIds.has(u.id));
+
+      if (availableUsers.length === 0) {
+        console.log('No available users found');
+      }
 
       // Return candidates with real user information
       return availableUsers.map((user) => ({
         id: user.id,
         display_name: user.display_name || 'Anonymous',
         gender: user.gender,
-        bio: `Looking for meaningful connections and good conversations! Love exploring new places and trying different cuisines.`,
+        bio: `Looking for meaningful connections and good conversations!`,
         interests: ['Music', 'Travel', 'Food', 'Books', 'Movies'].slice(0, Math.floor(Math.random() * 3) + 2),
         grad_year: 2024 + Math.floor(Math.random() * 4)
       }));
     } catch (error) {
       console.error('Error fetching candidates:', error);
-      return [];
+      throw error;
     }
   },
 
