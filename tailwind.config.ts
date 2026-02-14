@@ -108,6 +108,10 @@ export default {
 				'bounce-subtle': {
 					'0%, 100%': { transform: 'translateX(-50%) translateY(0)' },
 					'50%': { transform: 'translateX(-50%) translateY(-4px)' }
+				},
+				'gradient': {
+					'0%, 100%': { backgroundPosition: '0% 50%' },
+					'50%': { backgroundPosition: '100% 50%' }
 				}
 			},
 			animation: {
@@ -120,7 +124,8 @@ export default {
 				'heart-pulse': 'heart-pulse 0.3s ease-in-out',
 				'shimmer': 'shimmer 2s infinite linear',
 				'glow-pulse': 'glow-pulse 2s infinite ease-in-out',
-				'bounce-subtle': 'bounce-subtle 1.5s ease-in-out infinite'
+				'bounce-subtle': 'bounce-subtle 1.5s ease-in-out infinite',
+				'gradient': 'gradient 8s ease infinite'
 			}
 		}
 	},

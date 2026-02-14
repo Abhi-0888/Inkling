@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { User, Heart, Shield, Sparkles } from 'lucide-react';
 import { useAdmin } from '@/hooks/useAdmin';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AppHeaderProps {
   onShowProfile: () => void;
@@ -37,50 +37,77 @@ export const AppHeader = ({ onShowProfile, activeTab, onTabChange }: AppHeaderPr
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg supports-[backdrop-filter]:bg-background/60 border-b border-border">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-white/10 shadow-sm supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center justify-between px-4">
-        <motion.div 
-          key={activeTab}
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-3"
-        >
-          <div className="relative">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-md">
+        <div className="flex items-center gap-3 overflow-hidden">
+          <motion.div
+            className="relative"
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            whileTap={{ scale: 0.95 }}
+          >
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-md shadow-primary/20">
               <Heart className="h-5 w-5 text-white fill-white/30" />
             </div>
-            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-background rounded-full" />
+            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-background rounded-full animate-pulse" />
+          </motion.div>
+
+          <div className="relative h-10 w-48">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="absolute inset-0 flex flex-col justify-center"
+              >
+                <h1 className="text-lg font-bold leading-tight truncate">
+                  {getTitle()}
+                </h1>
+                <p className="text-[10px] text-muted-foreground leading-tight truncate">
+                  {getSubtitle()}
+                </p>
+              </motion.div>
+            </AnimatePresence>
           </div>
-          <div>
-            <h1 className="text-lg font-bold leading-tight">
-              {getTitle()}
-            </h1>
-            <p className="text-[10px] text-muted-foreground leading-tight">
-              {getSubtitle()}
-            </p>
-          </div>
-        </motion.div>
-        
+        </div>
+
         <div className="flex items-center gap-1">
           {isModerator && (
             <Link to="/admin">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="icon"
-                className="text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors rounded-xl"
+                asChild
               >
-                <Shield className="h-5 w-5" />
+                <motion.button
+                  whileHover={{ scale: 1.1, backgroundColor: "hsl(var(--primary) / 0.1)" }}
+                  whileTap={{ scale: 0.9 }}
+                  className="rounded-xl text-muted-foreground hover:text-primary transition-colors"
+                >
+                  <Shield className="h-5 w-5" />
+                </motion.button>
               </Button>
             </Link>
           )}
-          <NotificationBell onNavigate={onTabChange} />
-          <Button 
-            variant="ghost" 
-            size="icon" 
+
+          <div className="relative">
+            <NotificationBell onNavigate={onTabChange} />
+          </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={onShowProfile}
-            className="hover:bg-primary/10 transition-colors rounded-xl"
+            asChild
           >
-            <User className="h-5 w-5" />
+            <motion.button
+              whileHover={{ scale: 1.1, backgroundColor: "hsl(var(--primary) / 0.1)" }}
+              whileTap={{ scale: 0.9 }}
+              className="rounded-xl relative"
+            >
+              <User className="h-5 w-5" />
+            </motion.button>
           </Button>
         </div>
       </div>

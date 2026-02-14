@@ -115,6 +115,13 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground antialiased;
+    font-family: 'Outfit', sans-serif;
+    background-image: 
+      radial-gradient(at 0% 0%, hsla(271, 81%, 56%, 0.1) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(320, 65%, 52%, 0.1) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, hsla(230, 80%, 60%, 0.1) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, hsla(271, 81%, 56%, 0.1) 0px, transparent 50%);
+    background-attachment: fixed;
   }
 }
 

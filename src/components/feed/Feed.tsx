@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Sparkles, TrendingUp, Zap } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { PostCard } from './PostCard';
 import { PostComposer } from './PostComposer';
 import { CommentsDialog } from './CommentsDialog';
@@ -36,7 +37,7 @@ export const Feed = ({ onPostClick, onShowProfile }: FeedProps) => {
 
   useEffect(() => {
     fetchPosts();
-    
+
     // Set up real-time subscriptions for posts, reactions, and comments
     const channel = supabase
       .channel('feed-changes')
@@ -78,13 +79,13 @@ export const Feed = ({ onPostClick, onShowProfile }: FeedProps) => {
   const handleLike = async (postId: string) => {
     try {
       const newLikeState = await postService.toggleLike(postId);
-      setPosts(posts.map(post => 
-        post.id === postId 
-          ? { 
-              ...post, 
-              user_has_liked: newLikeState,
-              like_count: newLikeState ? post.like_count + 1 : post.like_count - 1
-            }
+      setPosts(posts.map(post =>
+        post.id === postId
+          ? {
+            ...post,
+            user_has_liked: newLikeState,
+            like_count: newLikeState ? post.like_count + 1 : post.like_count - 1
+          }
           : post
       ));
     } catch (error) {
@@ -152,18 +153,18 @@ export const Feed = ({ onPostClick, onShowProfile }: FeedProps) => {
       {/* Header & Stories */}
       <div className="bg-background border-b border-border/50">
         <div className="px-4 pt-4 pb-2 flex justify-between items-end">
-            <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
-                <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
-                    {getGreeting()}, {userProfile?.display_name?.split(' ')[0] || 'Friend'}
-                </h1>
-            </div>
-            <div className="flex items-center gap-1 bg-orange-500/10 text-orange-600 px-2 py-1 rounded-full border border-orange-500/20">
-                <Zap className="h-3.5 w-3.5 fill-current" />
-                <span className="text-xs font-bold">3</span>
-            </div>
+          <div>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}</p>
+            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-primary/60">
+              {getGreeting()}, {userProfile?.display_name?.split(' ')[0] || 'Friend'}
+            </h1>
+          </div>
+          <div className="flex items-center gap-1 bg-orange-500/10 text-orange-600 px-2 py-1 rounded-full border border-orange-500/20">
+            <Zap className="h-3.5 w-3.5 fill-current" />
+            <span className="text-xs font-bold">3</span>
+          </div>
         </div>
-        
+
         <StoriesRail />
       </div>
 
@@ -183,7 +184,7 @@ export const Feed = ({ onPostClick, onShowProfile }: FeedProps) => {
               </TabsTrigger>
             </TabsList>
           </Tabs>
-          <Button 
+          <Button
             onClick={() => setShowComposer(true)}
             size="sm"
             className="ml-3 h-9 w-9 rounded-full bg-primary hover:bg-primary/90 shadow-md p-0"
@@ -199,7 +200,12 @@ export const Feed = ({ onPostClick, onShowProfile }: FeedProps) => {
           {loading ? (
             <SkeletonFeed count={3} />
           ) : posts.length === 0 ? (
-            <div className="text-center py-12 animate-fade-in">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5 }}
+              className="text-center py-12"
+            >
               <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Sparkles className="h-8 w-8 text-primary" />
               </div>
@@ -207,28 +213,50 @@ export const Feed = ({ onPostClick, onShowProfile }: FeedProps) => {
               <p className="text-muted-foreground mb-4">
                 Be the first to share something with your campus!
               </p>
-              <Button 
+              <Button
                 onClick={() => setShowComposer(true)}
                 className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
               >
                 Create First Post
               </Button>
-            </div>
+            </motion.div>
           ) : (
-            posts.map((post, index) => (
-              <div 
-                key={post.id} 
-                className="animate-fade-in"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <PostCard
-                  post={post}
-                  onLike={() => handleLike(post.id)}
-                  onComment={(postId) => setSelectedPostId(postId)}
-                  onSecretLike={() => handleSecretLike(post.id)}
-                />
-              </div>
-            ))
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{
+                hidden: { opacity: 0 },
+                visible: {
+                  opacity: 1,
+                  transition: {
+                    staggerChildren: 0.1
+                  }
+                }
+              }}
+              className="space-y-4"
+            >
+              <AnimatePresence mode="popLayout">
+                {posts.map((post) => (
+                  <motion.div
+                    key={post.id}
+                    layout
+                    variants={{
+                      hidden: { opacity: 0, y: 20 },
+                      visible: { opacity: 1, y: 0 }
+                    }}
+                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
+                    transition={{ duration: 0.4, ease: "easeOut" }}
+                  >
+                    <PostCard
+                      post={post}
+                      onLike={() => handleLike(post.id)}
+                      onComment={(postId) => setSelectedPostId(postId)}
+                      onSecretLike={() => handleSecretLike(post.id)}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
           )}
         </VerificationGate>
       </div>
