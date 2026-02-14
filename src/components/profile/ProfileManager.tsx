@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { User, Shield, CheckCircle, Clock, XCircle, LogOut, Key, Save } from 'lucide-react';
+import { User, Shield, CheckCircle, Clock, XCircle, LogOut, Key, Save, X } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
@@ -152,21 +152,23 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
             Profile
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4 px-5 pb-5">
           {/* Profile Settings */}
-          <div className="space-y-4">
+          <div className="space-y-3">
+            <h3 className="font-semibold text-sm">Profile Settings</h3>
             <div className="space-y-2">
-              <label className="text-sm text-muted-foreground">Display Name</label>
+              <label className="text-xs text-muted-foreground">Display Name</label>
               <Input
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="Your display name"
+                className="h-9"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm text-muted-foreground">Gender</label>
+              <label className="text-xs text-muted-foreground">Gender</label>
               <Select value={gender} onValueChange={(value: 'male' | 'female' | 'other') => setGender(value)}>
-                <SelectTrigger>
+                <SelectTrigger className="h-9">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -179,42 +181,46 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
             <Button 
               onClick={handleSaveProfile} 
               disabled={saving}
-              className="w-full"
+              className="w-full h-9"
+              size="sm"
             >
-              {saving ? <><User className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : <><Save className="mr-2 h-4 w-4" /> Save Profile</>}
+              {saving ? <><User className="mr-2 h-3 w-3 animate-spin" /> Saving...</> : <><Save className="mr-2 h-3 w-3" /> Save Profile</>}
             </Button>
           </div>
 
           {/* User Info */}
-          <div className="space-y-3">
-            <div>
-              <p className="text-sm text-muted-foreground">Email</p>
-              <p className="font-medium">{user?.email}</p>
-            </div>
-            
-            {userProfile?.full_name && (
+          <div className="space-y-2">
+            <h3 className="font-semibold text-sm">Account Info</h3>
+            <div className="bg-muted/30 rounded-lg p-3 space-y-2">
               <div>
-                <p className="text-sm text-muted-foreground">Full Name</p>
-                <p className="font-medium">{userProfile.full_name}</p>
+                <p className="text-xs text-muted-foreground">Email</p>
+                <p className="text-sm font-medium">{user?.email}</p>
               </div>
-            )}
+              
+              {userProfile?.full_name && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Full Name</p>
+                  <p className="text-sm font-medium">{userProfile.full_name}</p>
+                </div>
+              )}
 
-            {userProfile?.phone_number && (
-              <div>
-                <p className="text-sm text-muted-foreground">Phone</p>
-                <p className="font-medium">{userProfile.phone_number}</p>
-              </div>
-            )}
+              {userProfile?.phone_number && (
+                <div>
+                  <p className="text-xs text-muted-foreground">Phone</p>
+                  <p className="text-sm font-medium">{userProfile.phone_number}</p>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Verification Status */}
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Verification Status</span>
+              <span className="text-xs font-medium">Verification</span>
               <Badge className={statusInfo.color}>
                 <div className="flex items-center space-x-1">
                   {statusInfo.icon}
-                  <span>{statusInfo.label}</span>
+                  <span className="text-xs">{statusInfo.label}</span>
                 </div>
               </Badge>
             </div>
@@ -223,12 +229,12 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
             </p>
           </div>
 
-          {/* Account Stats */}
-          <div className="bg-muted/30 rounded-lg p-4">
-            <div className="flex items-start space-x-3">
-              <Shield className="h-5 w-5 text-primary mt-0.5" />
+          {/* Account Security */}
+          <div className="bg-muted/30 rounded-lg p-3">
+            <div className="flex items-start space-x-2">
+              <Shield className="h-4 w-4 text-primary mt-0.5" />
               <div>
-                <h4 className="font-medium text-sm">Account Security</h4>
+                <h4 className="font-medium text-xs">Account Security</h4>
                 <p className="text-xs text-muted-foreground mt-1">
                   Your account is protected and your identity {userProfile.verification_status === 'verified' ? 'is verified' : 'verification is in progress'}
                 </p>
@@ -238,8 +244,8 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
 
           {/* Change Password Section */}
           {showChangePassword ? (
-            <div className="space-y-3">
-              <h4 className="font-medium text-sm">Change Password</h4>
+            <div className="space-y-2">
+              <h4 className="font-medium text-xs">Change Password</h4>
               <ChangePasswordForm 
                 onSuccess={() => {
                   setShowChangePassword(false);
@@ -251,28 +257,25 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
             <Button 
               variant="outline" 
               onClick={() => setShowChangePassword(true)}
-              className="w-full"
+              className="w-full h-9"
+              size="sm"
             >
-              <Key className="h-4 w-4 mr-2" />
+              <Key className="h-3 w-3 mr-2" />
               Change Password
             </Button>
           )}
 
-          {/* Actions */}
-          <div className="flex space-x-2">
-            <Button variant="outline" onClick={onClose} className="flex-1">
-              Close
-            </Button>
-            <Button 
-              onClick={handleLogout}
-              disabled={loading}
-              variant="destructive"
-              className="flex-1"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              {loading ? "Logging out..." : "Logout"}
-            </Button>
-          </div>
+          {/* Logout Button */}
+          <Button 
+            onClick={handleLogout}
+            disabled={loading}
+            variant="destructive"
+            className="w-full h-9"
+            size="sm"
+          >
+            <LogOut className="h-3 w-3 mr-2" />
+            {loading ? "Logging out..." : "Logout"}
+          </Button>
         </CardContent>
       </Card>
     </div>
