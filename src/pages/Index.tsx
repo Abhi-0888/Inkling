@@ -11,6 +11,7 @@ import { BlindDate } from '@/components/sections/BlindDate';
 import { Matching } from '@/components/sections/Matching';
 import { Chatting } from '@/components/sections/Chatting';
 import { BottomNav } from '@/components/layout/BottomNav';
+import { AppHeader } from '@/components/layout/AppHeader';
 import { ProfileManager } from '@/components/profile/ProfileManager';
 import { IdentityVerificationForm } from '@/components/auth/IdentityVerificationForm';
 
@@ -44,11 +45,14 @@ const Index = () => {
 
     return (
       <div className="min-h-screen bg-background">
-        {activeTab === 'feed' && <Feed onPostClick={() => {}} onShowProfile={() => setShowProfile(true)} />}
-        {activeTab === 'dark-desire' && <DarkDesire onShowProfile={() => setShowProfile(true)} />}
-        {activeTab === 'blind-date' && <BlindDate />}
-        {activeTab === 'matching' && <Matching />}
-        {activeTab === 'chatting' && <Chatting />}
+        <AppHeader onShowProfile={() => setShowProfile(true)} />
+        <div className="pt-14">
+          {activeTab === 'feed' && <Feed onPostClick={() => {}} onShowProfile={() => setShowProfile(true)} />}
+          {activeTab === 'dark-desire' && <DarkDesire onShowProfile={() => setShowProfile(true)} />}
+          {activeTab === 'blind-date' && <BlindDate />}
+          {activeTab === 'matching' && <Matching />}
+          {activeTab === 'chatting' && <Chatting />}
+        </div>
         <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
         
         {showProfile && (
