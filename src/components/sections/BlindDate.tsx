@@ -168,7 +168,7 @@ export const BlindDate = () => {
 
   if (currentSession && currentSession.status === 'active') {
     return (
-      <div className="min-h-screen bg-background pb-20">
+      <div className="min-h-screen bg-background pb-20 flex flex-col">
         {/* Header */}
         <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
           <div className="flex items-center justify-between p-4">
@@ -176,21 +176,20 @@ export const BlindDate = () => {
               <Eye className="h-6 w-6 text-primary" />
               <h1 className="text-xl font-bold">Blind Date</h1>
             </div>
-            <div className="flex items-center space-x-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">{timeLeft}</span>
-              <Button onClick={endSession} variant="outline" size="sm">
-                End Chat
-              </Button>
-            </div>
+            <Button onClick={endSession} variant="outline" size="sm">
+              End Chat
+            </Button>
           </div>
         </div>
 
-        <ChatWindow 
-          type="blind_date" 
-          sessionId={currentSession.id}
-          onSessionEnd={() => setCurrentSession(null)}
-        />
+        <div className="flex-1 overflow-hidden">
+          <ChatWindow 
+            type="blind_date" 
+            sessionId={currentSession.id}
+            expiresAt={currentSession.expires_at}
+            onSessionEnd={() => setCurrentSession(null)}
+          />
+        </div>
       </div>
     );
   }
