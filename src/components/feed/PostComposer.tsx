@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Image, Globe, School, X } from 'lucide-react';
+import { Image, Globe, School, X, Hash } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { postService } from '@/services/postService';
 import { useAuth } from '@/contexts/AuthContext';
@@ -16,6 +16,17 @@ interface PostComposerProps {
   placeholder?: string;
   title?: string;
 }
+
+const SUGGESTED_HASHTAGS = [
+  '#Confession',
+  '#CampusCrush',
+  '#SecretAdmirer',
+  '#MissedConnection',
+  '#LoveStory',
+  '#HeartBreak',
+  '#NightThoughts',
+  '#Feelings',
+];
 
 export const PostComposer = ({ 
   onClose, 
@@ -29,6 +40,17 @@ export const PostComposer = ({
   const [loading, setLoading] = useState(false);
   const { userProfile } = useAuth();
   const { toast } = useToast();
+
+  const handleHashtagClick = (hashtag: string) => {
+    // Add hashtag to content if not already present
+    if (!content.includes(hashtag)) {
+      const newContent = content.trim() ? `${content.trim()} ${hashtag}` : hashtag;
+      setContent(newContent);
+    }
+  };
+
+  // Extract hashtags from content for display
+  const extractedHashtags: string[] = content.match(/#\w+/g) || [];
 
   const handleSubmit = async () => {
     if (!content.trim()) {
@@ -83,6 +105,32 @@ export const PostComposer = ({
             className="min-h-[120px] resize-none border-0 bg-muted/30 focus-visible:ring-0 focus-visible:ring-offset-0"
             maxLength={500}
           />
+
+          {/* Suggested Hashtags */}
+          {section === 'dark_desire' && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Hash className="h-3 w-3 text-primary" />
+                <span className="text-xs font-medium text-muted-foreground">Add hashtags</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {SUGGESTED_HASHTAGS.map((tag) => (
+                  <Badge
+                    key={tag}
+                    variant={extractedHashtags.includes(tag) ? "default" : "secondary"}
+                    className={`cursor-pointer transition-all text-xs ${
+                      extractedHashtags.includes(tag) 
+                        ? 'bg-primary text-primary-foreground' 
+                        : 'hover:bg-primary/20 hover:text-primary'
+                    }`}
+                    onClick={() => handleHashtagClick(tag)}
+                  >
+                    {tag}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <span>{content.length}/500</span>
