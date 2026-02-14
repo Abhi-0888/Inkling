@@ -44,12 +44,9 @@ export const matchingService = {
         throw new Error('Please set your gender in profile settings first');
       }
 
-      // Get opposite gender users
-      const oppositeGender = currentUser.gender === 'male' ? 'female' : currentUser.gender === 'female' ? 'male' : null;
-      
-      if (!oppositeGender) {
-        throw new Error('Matching is only available for male/female users');
-      }
+      // Browse all other verified users (no gender filter)
+      // Note: RLS only lets verified users view verified profiles
+      // Keeping exclusion of self and already matched below
       
       // Get users excluding current user and already matched users
       const { data: existingMatches } = await supabase
@@ -65,7 +62,6 @@ export const matchingService = {
         .from('users')
         .select('id, display_name, gender, verification_status')
         .neq('id', user.id)
-        .eq('gender', oppositeGender)
         .eq('verification_status', 'verified')
         .limit(50);
 
@@ -226,6 +222,100 @@ export const matchingService = {
       return data || [];
     } catch (error) {
       console.error('Error fetching messages:', error);
+      return [];
+    }
+  }
+,
+  async getLikesReceived(): Promise<MatchCandidate[]> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // People who liked me (one-way likes)
+      const { data: likesToMe } = await supabase
+        .from('matches')
+        .select('user_a_id')
+        .eq('user_b_id', user.id);
+
+      const likerIds = Array.from(new Set((likesToMe || []).map(r => r.user_a_id).filter(Boolean)));
+
+      if (likerIds.length === 0) return [];
+
+      // Remove mutual likes (already matched)
+      const { data: myLikesBack } = await supabase
+        .from('matches')
+        .select('user_b_id')
+        .eq('user_a_id', user.id)
+        .in('user_b_id', likerIds as string[]);
+
+      const mutualIds = new Set((myLikesBack || []).map(r => r.user_b_id));
+      const pendingIds = likerIds.filter(id => !mutualIds.has(id as string));
+
+      if (pendingIds.length === 0) return [];
+
+      const { data: usersData } = await supabase
+        .from('users')
+        .select('id, display_name, gender, verification_status')
+        .in('id', pendingIds as string[])
+        .eq('verification_status', 'verified');
+
+      return (usersData || []).map(u => ({
+        id: u.id,
+        display_name: u.display_name || 'Anonymous',
+        gender: u.gender || undefined,
+        bio: `Interested in connecting.`,
+        interests: ['Chat', 'New friends'],
+        grad_year: 2024
+      }));
+    } catch (e) {
+      console.error('Error getLikesReceived:', e);
+      return [];
+    }
+  },
+
+  async getLikesSent(): Promise<MatchCandidate[]> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // People I liked (one-way likes)
+      const { data: myLikes } = await supabase
+        .from('matches')
+        .select('user_b_id')
+        .eq('user_a_id', user.id);
+
+      const likedIds = Array.from(new Set((myLikes || []).map(r => r.user_b_id).filter(Boolean)));
+
+      if (likedIds.length === 0) return [];
+
+      // Remove mutual likes (already matched)
+      const { data: likesBack } = await supabase
+        .from('matches')
+        .select('user_a_id')
+        .eq('user_b_id', user.id)
+        .in('user_a_id', likedIds as string[]);
+
+      const mutualIds = new Set((likesBack || []).map(r => r.user_a_id));
+      const pendingIds = likedIds.filter(id => !mutualIds.has(id as string));
+
+      if (pendingIds.length === 0) return [];
+
+      const { data: usersData } = await supabase
+        .from('users')
+        .select('id, display_name, gender, verification_status')
+        .in('id', pendingIds as string[])
+        .eq('verification_status', 'verified');
+
+      return (usersData || []).map(u => ({
+        id: u.id,
+        display_name: u.display_name || 'Anonymous',
+        gender: u.gender || undefined,
+        bio: `Awaiting a match.`,
+        interests: ['Chat', 'Connections'],
+        grad_year: 2024
+      }));
+    } catch (e) {
+      console.error('Error getLikesSent:', e);
       return [];
     }
   }
