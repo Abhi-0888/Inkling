@@ -135,7 +135,15 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <Card className="w-full max-w-md shadow-lg border-0 bg-card">
+      <Card className="w-full max-w-md shadow-lg border-0 bg-card relative">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          className="absolute top-2 right-2 z-10"
+        >
+          <XCircle className="h-5 w-5" />
+        </Button>
         <CardHeader className="text-center space-y-4">
           <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center">
             <User className="h-8 w-8 text-primary-foreground" />

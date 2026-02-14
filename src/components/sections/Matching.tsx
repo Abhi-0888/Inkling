@@ -48,7 +48,13 @@ export const Matching = () => {
       if (isMatch && direction === 'like') {
         toast({
           title: "🎉 It's a Match!",
-          description: "You can now chat with each other!",
+          description: `You and ${candidate.display_name || 'your match'} can now chat with each other!`,
+          duration: 5000,
+        });
+      } else if (direction === 'like') {
+        toast({
+          title: "Like sent!",
+          description: "If they like you back, you'll be matched!",
         });
       }
       
