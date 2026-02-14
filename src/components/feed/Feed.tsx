@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Plus, Sparkles, TrendingUp, Shield } from 'lucide-react';
+import { Plus, Sparkles, TrendingUp } from 'lucide-react';
 import { PostCard } from './PostCard';
 import { PostComposer } from './PostComposer';
 import { CommentsDialog } from './CommentsDialog';
@@ -11,8 +11,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { VerificationGate } from '@/components/common/VerificationGate';
-import { useAdmin } from '@/hooks/useAdmin';
-import { Link } from 'react-router-dom';
 
 interface FeedProps {
   onPostClick?: (postId: string) => void;
@@ -27,7 +25,6 @@ export const Feed = ({ onPostClick, onShowProfile }: FeedProps) => {
   const [activeTab, setActiveTab] = useState('foryou');
   const { user } = useAuth();
   const { toast } = useToast();
-  const { isModerator } = useAdmin();
 
   useEffect(() => {
     fetchPosts();
@@ -144,95 +141,73 @@ export const Feed = ({ onPostClick, onShowProfile }: FeedProps) => {
 
   return (
     <div className="flex-1 pb-20">
-      {/* Header */}
-      <div className="sticky top-0 bg-background/80 backdrop-blur-md border-b border-border z-40 p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Inkling
-          </h1>
-          <div className="flex items-center space-x-2">
-            <Button 
-              onClick={() => setShowComposer(true)}
-              size="sm"
-              className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Post
-            </Button>
-            <Button 
-              onClick={onShowProfile}
-              variant="ghost"
-              size="sm"
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Profile
-            </Button>
-            {isModerator && (
-              <Link to="/admin">
-                <Button 
-                  variant="ghost"
-                  size="icon"
-                  className="text-muted-foreground hover:text-primary"
-                >
-                  <Shield className="h-5 w-5" />
-                </Button>
-              </Link>
-            )}
-          </div>
+      {/* Tabs Section */}
+      <div className="sticky top-14 bg-background/95 backdrop-blur-md border-b border-border z-30 px-4 pt-3">
+        <div className="flex items-center justify-between mb-3">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1">
+            <TabsList className="grid w-full grid-cols-3 h-10">
+              <TabsTrigger value="foryou" className="flex items-center gap-1.5 text-sm">
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>For You</span>
+              </TabsTrigger>
+              <TabsTrigger value="fresh" className="flex items-center gap-1.5 text-sm">
+                <TrendingUp className="h-3.5 w-3.5" />
+                <span>Fresh</span>
+              </TabsTrigger>
+              <TabsTrigger value="campus" className="text-sm">
+                Campus
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          <Button 
+            onClick={() => setShowComposer(true)}
+            size="sm"
+            className="ml-3 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 shadow-md"
+          >
+            <Plus className="h-4 w-4 mr-1" />
+            Post
+          </Button>
         </div>
+      </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="foryou" className="flex items-center space-x-1">
-              <Sparkles className="h-4 w-4" />
-              <span>For You</span>
-            </TabsTrigger>
-            <TabsTrigger value="fresh" className="flex items-center space-x-1">
-              <TrendingUp className="h-4 w-4" />
-              <span>Fresh</span>
-            </TabsTrigger>
-            <TabsTrigger value="campus" className="flex items-center space-x-1">
-              <span>Campus</span>
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Feed Content */}
-          <div className="p-4 space-y-4">
-            <TabsContent value={activeTab} className="mt-0 space-y-4">
-              <VerificationGate requireVerification={true} onShowProfile={onShowProfile}>
-                {loading ? (
-                  <SkeletonFeed count={3} />
-                ) : posts.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Sparkles className="h-8 w-8 text-muted-foreground" />
-                    </div>
-                    <h3 className="text-lg font-medium mb-2">No posts yet</h3>
-                    <p className="text-muted-foreground mb-4">
-                      Be the first to share something with your campus!
-                    </p>
-                    <Button 
-                      onClick={() => setShowComposer(true)}
-                      className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
-                    >
-                      Create First Post
-                    </Button>
-                  </div>
-                ) : (
-                  posts.map(post => (
-                    <PostCard
-                      key={post.id}
-                      post={post}
-                      onLike={() => handleLike(post.id)}
-                      onComment={(postId) => setSelectedPostId(postId)}
-                      onSecretLike={() => handleSecretLike(post.id)}
-                    />
-                  ))
-                )}
-              </VerificationGate>
-            </TabsContent>
-          </div>
-        </Tabs>
+      {/* Feed Content */}
+      <div className="p-4 space-y-4">
+        <VerificationGate requireVerification={true} onShowProfile={onShowProfile}>
+          {loading ? (
+            <SkeletonFeed count={3} />
+          ) : posts.length === 0 ? (
+            <div className="text-center py-12 animate-fade-in">
+              <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="h-8 w-8 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">No posts yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Be the first to share something with your campus!
+              </p>
+              <Button 
+                onClick={() => setShowComposer(true)}
+                className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+              >
+                Create First Post
+              </Button>
+            </div>
+          ) : (
+            posts.map((post, index) => (
+              <div 
+                key={post.id} 
+                className="animate-fade-in"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <PostCard
+                  post={post}
+                  onLike={() => handleLike(post.id)}
+                  onComment={(postId) => setSelectedPostId(postId)}
+                  onSecretLike={() => handleSecretLike(post.id)}
+                />
+              </div>
+            ))
+          )}
+        </VerificationGate>
       </div>
 
       {/* Post Composer Modal */}
