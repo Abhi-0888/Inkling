@@ -11,6 +11,7 @@ export interface MatchCandidate {
   avatar_icon?: string;
   prompts?: { question: string; answer: string }[];
   verification_status?: string;
+  unpopular_opinion?: string;
 }
 
 export interface Match {
@@ -87,7 +88,7 @@ export const matchingService = {
       // Query users table - RLS restricts access appropriately
       const { data: users, error } = await supabase
         .from('users')
-        .select('id, display_name, gender, verification_status')
+        .select('id, display_name, gender, verification_status, bio, class_of_year, interests, unpopular_opinion')
         .neq('id', user.id)
         .eq('verification_status', 'verified')
         .limit(50);
@@ -101,27 +102,22 @@ export const matchingService = {
       const availableUsers = (users || []).filter(u => !matchedUserIds.has(u.id));
 
       // Return candidates with real user information
-      return availableUsers.map((user, index) => {
-        const idSum = user.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      return availableUsers.map((user: any, index) => {
+        const idSum = user.id.split('').reduce((acc: number, char: string) => acc + char.charCodeAt(0), 0);
         const colorIndex = idSum % AVATAR_COLORS.length;
-        const promptIndex = (idSum + index) % PROMPTS.length;
 
         return {
           id: user.id,
           display_name: user.display_name || 'Anonymous',
           gender: user.gender,
           verification_status: user.verification_status || 'verified',
-          bio: `Looking for meaningful connections and good conversations!`,
-          interests: ['Music', 'Travel', 'Food', 'Books', 'Movies', 'Gym', 'Art', 'Coding'].sort(() => 0.5 - Math.random()).slice(0, 3),
-          grad_year: 2024 + Math.floor(Math.random() * 4),
+          bio: user.bio || undefined,
+          interests: user.interests || undefined,
+          grad_year: user.class_of_year || undefined,
           avatar_color: AVATAR_COLORS[colorIndex],
           avatar_icon: 'user',
-          prompts: [
-            {
-              question: PROMPTS[promptIndex],
-              answer: "Ask me about this! 🤫"
-            }
-          ]
+          unpopular_opinion: user.unpopular_opinion || undefined,
+          prompts: user.unpopular_opinion ? [{ question: "My unpopular opinion is...", answer: user.unpopular_opinion }] : undefined,
         };
       });
     } catch (error) {

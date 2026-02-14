@@ -239,36 +239,40 @@ export const Matching = () => {
                       )}
                     </div>
                     <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
-                      <span className="capitalize">{currentCandidate.gender}</span>
-                      <span>•</span>
-                      <span>Class of {currentCandidate.grad_year}</span>
+                      {currentCandidate.gender && <span className="capitalize">{currentCandidate.gender}</span>}
+                      {currentCandidate.gender && currentCandidate.grad_year && <span>•</span>}
+                      {currentCandidate.grad_year && <span>Class of {currentCandidate.grad_year}</span>}
                     </div>
                   </div>
                 </div>
 
                 {/* Bio */}
                 <div className="space-y-4 flex-1">
-                  <div className="bg-background/80 backdrop-blur-sm p-4 rounded-2xl border border-border/50">
-                    <p className="text-center text-base leading-relaxed font-medium">
-                      "{currentCandidate.bio}"
-                    </p>
-                  </div>
+                  {currentCandidate.bio && (
+                    <div className="bg-background/80 backdrop-blur-sm p-4 rounded-2xl border border-border/50">
+                      <p className="text-center text-base leading-relaxed font-medium">
+                        "{currentCandidate.bio}"
+                      </p>
+                    </div>
+                  )}
 
                   {/* Interests */}
-                  <div className="flex flex-wrap gap-2 justify-center">
-                    {currentCandidate.interests?.map((interest, i) => (
-                      <Badge 
-                        key={i} 
-                        variant="secondary"
-                        className="px-3 py-1.5 text-sm bg-background/60 backdrop-blur-sm"
-                      >
-                        {interest}
-                      </Badge>
-                    ))}
-                  </div>
+                  {currentCandidate.interests && currentCandidate.interests.length > 0 && (
+                    <div className="flex flex-wrap gap-2 justify-center">
+                      {currentCandidate.interests.map((interest, i) => (
+                        <Badge 
+                          key={i} 
+                          variant="secondary"
+                          className="px-3 py-1.5 text-sm bg-background/60 backdrop-blur-sm"
+                        >
+                          {interest}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
 
                   {/* Prompts */}
-                  {currentCandidate.prompts?.map((prompt, i) => (
+                  {currentCandidate.prompts && currentCandidate.prompts.length > 0 && currentCandidate.prompts.map((prompt, i) => (
                     <div key={i} className="bg-primary/5 p-4 rounded-2xl border border-primary/10">
                       <p className="text-xs font-bold text-primary uppercase tracking-wider mb-1">{prompt.question}</p>
                       <p className="text-sm font-medium">{prompt.answer}</p>
