@@ -15,6 +15,7 @@ export const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
   ];
   
   const rightTabs = [
+    { id: 'blind-date', icon: Users, label: 'Blind Date' },
     { id: 'matching', icon: Heart, label: 'Match' },
     { id: 'chatting', icon: MessageCircle, label: 'Chat' },
   ];
