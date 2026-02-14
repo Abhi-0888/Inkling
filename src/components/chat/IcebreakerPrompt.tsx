@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Sparkles, RefreshCw } from 'lucide-react';
 
-const ICEBREAKERS = [
+export const ICEBREAKERS = [
   "What's the most spontaneous thing you've ever done?",
   "If you could have dinner with anyone, alive or dead, who would it be?",
   "What's a skill you've always wanted to learn?",
@@ -18,7 +18,13 @@ const ICEBREAKERS = [
   "What's on your bucket list that you haven't done yet?",
   "Are you a morning person or a night owl?",
   "What song is stuck in your head right now?",
-  "If you could time travel, would you go to the past or future?"
+  "If you could time travel, would you go to the past or future?",
+  "What's your biggest turn-on?",
+  "What's the wildest place you've ever hooked up?",
+  "What's a secret you've never told anyone?",
+  "Describe your perfect date night.",
+  "What's the most romantic thing someone has done for you?",
+  "What's your favorite physical feature on a partner?"
 ];
 
 interface IcebreakerPromptProps {
