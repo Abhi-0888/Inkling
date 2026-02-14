@@ -170,12 +170,20 @@ export const BlindDate = () => {
     return (
       <div className="min-h-screen bg-background pb-20 flex flex-col">
         {/* Active Session Header */}
-        <div className="p-4 bg-card/50 backdrop-blur-sm border-b border-border flex items-center justify-between">
-            <div className="flex items-center gap-2">
-                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                 <span className="font-medium">Anonymous Chat</span>
+        <div className="p-3 bg-card/80 backdrop-blur-md border-b border-border flex items-center justify-between sticky top-0 z-10 shadow-sm">
+            <div className="flex items-center gap-3">
+                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-sm relative animate-pulse">
+                    <Users className="h-5 w-5 text-white" />
+                 </div>
+                 <div>
+                     <h3 className="font-semibold text-sm leading-none mb-1">Blind Date</h3>
+                     <div className="flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                        <p className="text-xs text-muted-foreground">Expires in {timeLeft}</p>
+                     </div>
+                 </div>
             </div>
-            <Button onClick={endSession} variant="destructive" size="sm" className="h-8">
+            <Button onClick={endSession} variant="destructive" size="sm" className="h-8 text-xs px-3 rounded-full">
               End Chat
             </Button>
         </div>

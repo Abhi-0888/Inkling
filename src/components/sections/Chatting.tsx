@@ -3,20 +3,23 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MessageCircle, Heart, Users, ArrowRight, ArrowLeft } from 'lucide-react';
+import { MessageCircle, Heart, Users, ArrowRight, ArrowLeft, Search, MoreHorizontal, CheckCircle2 } from 'lucide-react';
 import { matchingService, Match, MatchCandidate } from '@/services/matchingService';
 import { ChatWindow } from '@/components/chat/ChatWindow';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { Input } from '@/components/ui/input';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 
 export const Chatting = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [matches, setMatches] = useState<Match[]>([]);
   const [likesReceived, setLikesReceived] = useState<MatchCandidate[]>([]);
-  const [likesSent, setLikesSent] = useState<MatchCandidate[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (user) {
@@ -28,13 +31,10 @@ export const Chatting = () => {
       .channel('matches-changes')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'matches' }, async (payload) => {
         const newRow: any = payload.new;
-        
-        // Refresh lists immediately
         await Promise.all([loadMatches(), loadLikes()]);
 
         if (user && newRow.user_b_id === user.id) {
-          // Check if this creates a mutual match
-          const { data: reverseMatch } = await supabase
+           const { data: reverseMatch } = await supabase
             .from('matches')
             .select('*')
             .eq('user_a_id', user.id)
@@ -42,13 +42,11 @@ export const Chatting = () => {
             .maybeSingle();
 
           if (reverseMatch) {
-            // Mutual match - show celebration
             toast({
               title: "🎉 It's a Match!",
               description: "You can now chat with each other.",
             });
           } else {
-            // One-way like
             toast({
               title: "New like!",
               description: "Someone liked you. Like back to start chatting.",
@@ -70,11 +68,6 @@ export const Chatting = () => {
       setMatches(userMatches);
     } catch (error) {
       console.error('Error loading matches:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load your matches.",
-        variant: "destructive",
-      });
     } finally {
       setLoading(false);
     }
@@ -82,12 +75,8 @@ export const Chatting = () => {
 
   const loadLikes = async () => {
     try {
-      const [received, sent] = await Promise.all([
-        matchingService.getLikesReceived(),
-        matchingService.getLikesSent(),
-      ]);
+      const received = await matchingService.getLikesReceived();
       setLikesReceived(received);
-      setLikesSent(sent);
     } catch (error) {
       console.error('Error loading likes:', error);
     }
@@ -101,34 +90,43 @@ export const Chatting = () => {
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-    if (days > 0) return `${days}d ago`;
-    if (hours > 0) return `${hours}h ago`;
-    if (minutes > 0) return `${minutes}m ago`;
-    return 'Just now';
+    if (days > 0) return `${days}d`;
+    if (hours > 0) return `${hours}h`;
+    if (minutes > 0) return `${minutes}m`;
+    return 'now';
   };
+
+  const filteredMatches = matches.filter(m => 
+    m.other_user?.display_name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    m.last_message?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   if (selectedMatch) {
     return (
       <div className="min-h-screen bg-background pb-20 flex flex-col">
          {/* Chat Header */}
-         <div className="p-3 bg-card/80 backdrop-blur-md border-b border-border flex items-center gap-3 sticky top-0 z-10">
+         <div className="p-3 bg-card/80 backdrop-blur-md border-b border-border flex items-center gap-3 sticky top-0 z-10 shadow-sm">
              <Button
               onClick={() => setSelectedMatch(null)}
               variant="ghost"
               size="icon"
-              className="h-9 w-9 -ml-1 hover:bg-primary/10"
+              className="h-9 w-9 -ml-1 hover:bg-primary/10 rounded-full"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <div className="flex items-center gap-3">
-                 <div className="w-9 h-9 bg-gradient-to-br from-primary to-primary/60 rounded-full flex items-center justify-center shadow-sm">
-                    <Heart className="h-4 w-4 text-primary-foreground fill-current" />
+            <div className="flex items-center gap-3 flex-1">
+                 <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${selectedMatch.other_user?.avatar_color || 'from-primary to-accent'} flex items-center justify-center shadow-sm relative`}>
+                    <Users className="h-5 w-5 text-white" />
+                    <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-background rounded-full"></span>
                  </div>
                  <div>
-                     <h3 className="font-semibold text-sm leading-none mb-1">Anonymous Match</h3>
-                     <p className="text-xs text-muted-foreground">Chatting anonymously</p>
+                     <h3 className="font-semibold text-sm leading-none mb-1">{selectedMatch.other_user?.display_name || 'Anonymous'}</h3>
+                     <p className="text-xs text-muted-foreground">Active now</p>
                  </div>
             </div>
+            <Button variant="ghost" size="icon" className="rounded-full">
+                <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
+            </Button>
          </div>
 
         <div className="flex-1">
@@ -142,178 +140,116 @@ export const Chatting = () => {
     );
   }
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background pb-20">
-        <div className="flex items-center justify-center pt-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background pb-20">
-      <div className="max-w-md mx-auto p-4">
-        <Tabs defaultValue="matches" className="w-full">
-          <TabsList className="grid grid-cols-2 w-full">
-            <TabsTrigger value="matches">Matches</TabsTrigger>
-            <TabsTrigger value="likes">Likes</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="matches" className="mt-4">
-            {matches.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-primary/20 to-primary/5 rounded-full flex items-center justify-center mb-6">
-                  <Users className="h-10 w-10 text-primary/60" />
-                </div>
-                <h2 className="text-xl font-bold mb-3">No Matches Yet</h2>
-                <p className="text-muted-foreground mb-6">
-                  Start matching with people to begin chatting anonymously!
-                </p>
-                <Button className="bg-gradient-to-r from-primary to-primary/80">
-                  <Heart className="h-4 w-4 mr-2" />
-                  Start Matching
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <div className="mb-4">
-                  <h2 className="text-lg font-semibold">Your Matches</h2>
-                  <p className="text-sm text-muted-foreground">
-                    {matches.length} {matches.length === 1 ? 'match' : 'matches'}
-                  </p>
-                </div>
-
-                {matches.map((match) => (
-                  <Card
-                    key={match.id}
-                    className="p-4 cursor-pointer hover:bg-accent/50 transition-colors"
-                    onClick={() => setSelectedMatch(match)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-gradient-to-br from-primary to-primary/60 rounded-full flex items-center justify-center">
-                          <Heart className="h-6 w-6 text-primary-foreground" />
-                        </div>
-                        <div>
-                          <h3 className="font-semibold">Anonymous Match</h3>
-                          <p className="text-sm text-muted-foreground">
-                            Matched {formatTimeAgo(match.created_at)}
-                          </p>
-                          {match.match_type === 'swipe_match' && (
-                            <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
-                              Mutual Like
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        {match.unread_count > 0 && (
-                          <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
-                            <span className="text-xs text-primary-foreground font-bold">
-                              {match.unread_count > 9 ? '9+' : match.unread_count}
-                            </span>
-                          </div>
-                        )}
-                        <ArrowRight className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                    </div>
-                    
-                    {match.last_message && (
-                      <div className="mt-3 pt-3 border-t border-border">
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {typeof match.last_message === 'string' 
-                            ? match.last_message 
-                            : 'Start your conversation...'}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {formatTimeAgo(match.created_at)}
-                        </p>
-                      </div>
-                    )}
-                  </Card>
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="likes" className="mt-4 space-y-6">
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Likes You</h3>
-              {likesReceived.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No one has liked you yet. Keep exploring!</p>
-              ) : (
-                <div className="space-y-2">
-                  {likesReceived.map((u) => (
-                    <Card key={u.id} className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{u.display_name || 'Anonymous'}</p>
-                          <p className="text-sm text-muted-foreground">Liked you — like back to match</p>
-                        </div>
-                        <Button
-                          size="sm"
-                          onClick={async () => {
-                            try {
-                              const isMutual = await matchingService.likeUser(u.id);
-                              
-                              // Refresh both lists
-                              await Promise.all([loadMatches(), loadLikes()]);
-                              
-                              if (isMutual) {
-                                toast({
-                                  title: "🎉 It's a Match!",
-                                  description: "You can now start chatting.",
-                                });
-                              } else {
-                                toast({
-                                  title: "Like sent!",
-                                  description: "You'll match when they like you back.",
-                                });
-                              }
-                            } catch (error) {
-                              console.error('Error liking back:', error);
-                              toast({
-                                title: "Error",
-                                description: "Failed to like back. Please try again.",
-                                variant: "destructive",
-                              });
-                            }
-                          }}
-                        >
-                          <Heart className="h-4 w-4 mr-1" />
-                          Like Back
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
+      
+      {/* Header */}
+      <div className="p-4 space-y-4">
+        <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">Messages</h1>
+            <div className="bg-primary/10 p-2 rounded-full">
+                <MessageCircle className="h-5 w-5 text-primary" />
             </div>
+        </div>
 
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Your Likes</h3>
-              {likesSent.length === 0 ? (
-                <p className="text-sm text-muted-foreground">You haven't liked anyone yet.</p>
-              ) : (
-                <div className="space-y-2">
-                  {likesSent.map((u) => (
-                    <Card key={u.id} className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="font-medium">{u.display_name || 'Anonymous'}</p>
-                          <p className="text-sm text-muted-foreground">Waiting for a like back</p>
-                        </div>
-                      </div>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
-          </TabsContent>
-        </Tabs>
+        {/* Search */}
+        <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+                placeholder="Search matches..." 
+                className="pl-9 bg-muted/50 border-none rounded-2xl h-10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+            />
+        </div>
       </div>
+
+      {/* New Matches Scroll */}
+      {likesReceived.length > 0 && (
+          <div className="px-4 pb-2">
+            <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">New Likes</h3>
+                <Badge variant="secondary" className="bg-primary/10 text-primary">{likesReceived.length}</Badge>
+            </div>
+            <ScrollArea className="w-full whitespace-nowrap pb-4">
+                <div className="flex w-max space-x-4">
+                    {likesReceived.map((user) => (
+                        <div key={user.id} className="flex flex-col items-center space-y-2 cursor-pointer group"
+                            onClick={async () => {
+                                try {
+                                    const isMutual = await matchingService.likeUser(user.id);
+                                    await Promise.all([loadMatches(), loadLikes()]);
+                                    if (isMutual) {
+                                        toast({ title: "It's a Match! 🎉", description: "You can now chat!" });
+                                    }
+                                } catch (e) {
+                                    console.error(e);
+                                }
+                            }}
+                        >
+                            <div className="relative">
+                                <div className={`w-16 h-16 rounded-full bg-gradient-to-br ${user.avatar_color || 'from-pink-500 to-rose-500'} p-0.5 shadow-md group-hover:scale-105 transition-transform`}>
+                                    <div className="w-full h-full rounded-full bg-background/10 backdrop-blur-sm flex items-center justify-center border-2 border-white/20">
+                                        <Heart className="h-6 w-6 text-white fill-white/20" />
+                                    </div>
+                                </div>
+                                <div className="absolute -bottom-1 -right-1 bg-background rounded-full p-1">
+                                    <div className="bg-red-500 w-3 h-3 rounded-full animate-pulse" />
+                                </div>
+                            </div>
+                            <span className="text-xs font-medium w-16 text-center truncate">{user.display_name}</span>
+                        </div>
+                    ))}
+                </div>
+                <ScrollBar orientation="horizontal" className="hidden" />
+            </ScrollArea>
+          </div>
+      )}
+
+      {/* Messages List */}
+      <div className="px-4 pb-4">
+        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">Recent Chats</h3>
+        
+        {loading ? (
+             <div className="flex justify-center py-10"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div></div>
+        ) : filteredMatches.length === 0 ? (
+            <div className="text-center py-10 opacity-60">
+                <p>No matches found.</p>
+            </div>
+        ) : (
+            <div className="space-y-1">
+                {filteredMatches.map((match) => (
+                    <div 
+                        key={match.id} 
+                        className="flex items-center gap-4 p-3 rounded-2xl hover:bg-muted/50 transition-colors cursor-pointer active:scale-98 duration-200"
+                        onClick={() => setSelectedMatch(match)}
+                    >
+                        <div className="relative">
+                            <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${match.other_user?.avatar_color || 'from-blue-500 to-cyan-500'} flex items-center justify-center text-white shadow-sm`}>
+                                <Users className="h-6 w-6" />
+                            </div>
+                            {match.unread_count > 0 && (
+                                <div className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] font-bold h-5 w-5 rounded-full flex items-center justify-center ring-2 ring-background">
+                                    {match.unread_count}
+                                </div>
+                            )}
+                        </div>
+                        
+                        <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-1">
+                                <h4 className="font-semibold text-base truncate">{match.other_user?.display_name || 'Anonymous'}</h4>
+                                <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">{formatTimeAgo(match.created_at)}</span>
+                            </div>
+                            <p className={`text-sm truncate ${match.unread_count > 0 ? 'font-semibold text-foreground' : 'text-muted-foreground'}`}>
+                                {match.last_message || 'Start a conversation...'}
+                            </p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        )}
+      </div>
+
     </div>
   );
 };
