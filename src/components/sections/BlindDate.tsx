@@ -297,7 +297,7 @@ export const BlindDate = () => {
                       <span className="font-mono text-sm">{Math.floor(searchingTime / 60)}:{(searchingTime % 60).toString().padStart(2, '0')}</span>
                     </div>
                     <p className="text-sm text-muted-foreground">
-                      Looking for someone to chat with...
+                      We'll notify you once your blind date is found.
                     </p>
                   </div>
                   <Button 
