@@ -8,7 +8,7 @@ import { Feed } from '@/components/feed/Feed';
 import { BottomNav } from '@/components/layout/BottomNav';
 
 const Index = () => {
-  const { user, userProfile, loading } = useAuth();
+  const { user, userProfile, loading, signUp } = useAuth();
   const [onboardingStep, setOnboardingStep] = useState<'landing' | 'signin' | 'age-gate' | 'verification'>('landing');
   const [activeTab, setActiveTab] = useState('feed');
 
@@ -85,7 +85,6 @@ const Index = () => {
       <CollegeVerification
         onVerificationComplete={async (email, password, instituteId, gradYear) => {
           try {
-            const { signUp } = useAuth();
             await signUp(email, password, instituteId, gradYear);
           } catch (error) {
             console.error('Signup error:', error);
