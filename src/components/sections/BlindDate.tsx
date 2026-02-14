@@ -169,17 +169,15 @@ export const BlindDate = () => {
   if (currentSession && currentSession.status === 'active') {
     return (
       <div className="min-h-screen bg-background pb-20 flex flex-col">
-        {/* Header */}
-        <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center space-x-2">
-              <Eye className="h-6 w-6 text-primary" />
-              <h1 className="text-xl font-bold">Blind Date</h1>
+        {/* Active Session Header */}
+        <div className="p-4 bg-card/50 backdrop-blur-sm border-b border-border flex items-center justify-between">
+            <div className="flex items-center gap-2">
+                 <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                 <span className="font-medium">Anonymous Chat</span>
             </div>
-            <Button onClick={endSession} variant="outline" size="sm">
+            <Button onClick={endSession} variant="destructive" size="sm" className="h-8">
               End Chat
             </Button>
-          </div>
         </div>
 
         <div className="flex-1 overflow-hidden">
@@ -195,23 +193,15 @@ export const BlindDate = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
-      <div className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b border-border">
-        <div className="flex items-center space-x-2 p-4">
-          <Eye className="h-6 w-6 text-primary" />
-          <h1 className="text-xl font-bold">Blind Date</h1>
-        </div>
-      </div>
-
-      <div className="max-w-md mx-auto p-6 pt-12">
-        <Card className="p-8 text-center space-y-6">
-          <div className="mx-auto w-20 h-20 bg-gradient-to-br from-primary to-primary/60 rounded-full flex items-center justify-center">
+    <div className="min-h-screen bg-background pb-20 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        <Card className="p-8 text-center space-y-6 shadow-lg border-primary/10">
+          <div className="mx-auto w-20 h-20 bg-gradient-to-br from-primary to-primary/60 rounded-full flex items-center justify-center shadow-md">
             <Heart className="h-10 w-10 text-primary-foreground" />
           </div>
           
           <div className="space-y-3">
-            <h2 className="text-2xl font-bold">Ready for a Blind Date?</h2>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Blind Date</h2>
             <p className="text-muted-foreground">
               Get matched with someone random for an anonymous 24-hour chat. 
               No profiles, no names—just pure conversation.
@@ -219,7 +209,7 @@ export const BlindDate = () => {
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground">
+            <div className="flex items-center justify-center space-x-2 text-sm text-muted-foreground bg-secondary/50 py-2 rounded-full">
               <Users className="h-4 w-4" />
               <span>Anonymous • Safe • Ephemeral</span>
             </div>
