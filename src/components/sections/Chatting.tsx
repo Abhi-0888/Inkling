@@ -247,6 +247,30 @@ export const Chatting = () => {
                           <p className="font-medium">{u.display_name || 'Anonymous'}</p>
                           <p className="text-sm text-muted-foreground">Liked you — like back to match</p>
                         </div>
+                        <Button
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              await matchingService.likeUser(u.id);
+                              await loadMatches();
+                              await loadLikes();
+                              toast({
+                                title: "It's a match!",
+                                description: "You can now chat with each other.",
+                              });
+                            } catch (error) {
+                              console.error('Error liking back:', error);
+                              toast({
+                                title: "Error",
+                                description: "Failed to like back. Please try again.",
+                                variant: "destructive",
+                              });
+                            }
+                          }}
+                        >
+                          <Heart className="h-4 w-4 mr-1" />
+                          Like Back
+                        </Button>
                       </div>
                     </Card>
                   ))}
