@@ -12,9 +12,18 @@ import { useAuth } from '@/contexts/AuthContext';
 interface PostComposerProps {
   onClose: () => void;
   onPostCreated: () => void;
+  section?: 'feed' | 'dark_desire';
+  placeholder?: string;
+  title?: string;
 }
 
-export const PostComposer = ({ onClose, onPostCreated }: PostComposerProps) => {
+export const PostComposer = ({ 
+  onClose, 
+  onPostCreated, 
+  section = 'feed',
+  placeholder = "What's on your mind?",
+  title = "Create Post"
+}: PostComposerProps) => {
   const [content, setContent] = useState('');
   const [visibility, setVisibility] = useState<'campus' | 'global'>('campus');
   const [loading, setLoading] = useState(false);
@@ -43,6 +52,7 @@ export const PostComposer = ({ onClose, onPostCreated }: PostComposerProps) => {
           kind: 'text',
           content: content.trim(),
           visibility,
+          section,
         });
 
       if (error) throw error;
@@ -71,14 +81,14 @@ export const PostComposer = ({ onClose, onPostCreated }: PostComposerProps) => {
       <Card className="w-full max-w-md shadow-lg border-0 bg-card">
         <CardContent className="p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">New Post</h3>
+            <h3 className="text-lg font-semibold">{title}</h3>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-4 w-4" />
             </Button>
           </div>
 
           <Textarea
-            placeholder="What's on your mind? (Remember, this will be anonymous)"
+            placeholder={placeholder}
             value={content}
             onChange={(e) => setContent(e.target.value)}
             className="min-h-[120px] resize-none border-0 bg-muted/30 focus-visible:ring-0 focus-visible:ring-offset-0"
