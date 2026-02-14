@@ -7,7 +7,11 @@ import { Plus, Flame } from 'lucide-react';
 import { postService, PostWithStats } from '@/services/postService';
 import { useToast } from '@/hooks/use-toast';
 
-export const DarkDesire = () => {
+interface DarkDesireProps {
+  onLogout: () => Promise<void>;
+}
+
+export const DarkDesire = ({ onLogout }: DarkDesireProps) => {
   const { userProfile } = useAuth();
   const { toast } = useToast();
   const [posts, setPosts] = useState<PostWithStats[]>([]);
@@ -98,14 +102,24 @@ export const DarkDesire = () => {
               Dark Desire
             </h1>
           </div>
-          <Button
-            onClick={() => setShowComposer(true)}
-            size="sm"
-            className="bg-gradient-to-r from-destructive to-destructive/80 hover:from-destructive/90 hover:to-destructive/70"
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            Confess
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Button
+              onClick={() => setShowComposer(true)}
+              size="sm"
+              className="bg-gradient-to-r from-destructive to-destructive/80 hover:from-destructive/90 hover:to-destructive/70"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Confess
+            </Button>
+            <Button 
+              onClick={onLogout}
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Logout
+            </Button>
+          </div>
         </div>
         
         <div className="px-4 pb-3">

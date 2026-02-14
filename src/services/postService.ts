@@ -18,7 +18,6 @@ export const postService = {
           reactions(count),
           comments(count)
         `)
-        .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
@@ -148,7 +147,6 @@ export const postService = {
         .from('comments')
         .select('*')
         .eq('post_id', postId)
-        .is('deleted_at', null)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
@@ -169,7 +167,6 @@ export const postService = {
           comments(count)
         `)
         .eq('section', 'dark_desire')
-        .is('deleted_at', null)
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
 

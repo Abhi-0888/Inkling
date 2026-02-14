@@ -11,9 +11,10 @@ import { useToast } from '@/hooks/use-toast';
 
 interface FeedProps {
   onPostClick: (postId: string) => void;
+  onLogout: () => Promise<void>;
 }
 
-export const Feed = ({ onPostClick }: FeedProps) => {
+export const Feed = ({ onPostClick, onLogout }: FeedProps) => {
   const [posts, setPosts] = useState<PostWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [showComposer, setShowComposer] = useState(false);
@@ -124,14 +125,24 @@ export const Feed = ({ onPostClick }: FeedProps) => {
           <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
             Inkling
           </h1>
-          <Button 
-            onClick={() => setShowComposer(true)}
-            size="sm"
-            className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
-          >
-            <Plus className="h-4 w-4 mr-1" />
-            Post
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Button 
+              onClick={() => setShowComposer(true)}
+              size="sm"
+              className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Post
+            </Button>
+            <Button 
+              onClick={onLogout}
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Logout
+            </Button>
+          </div>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>

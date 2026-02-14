@@ -12,7 +12,7 @@ import { Chatting } from '@/components/sections/Chatting';
 import { BottomNav } from '@/components/layout/BottomNav';
 
 const Index = () => {
-  const { user, userProfile, loading, signUp } = useAuth();
+  const { user, userProfile, loading, signOut } = useAuth();
   const [onboardingStep, setOnboardingStep] = useState<'landing' | 'signin' | 'age-gate' | 'signup'>('landing');
   const [activeTab, setActiveTab] = useState('feed');
 
@@ -28,8 +28,8 @@ const Index = () => {
   if (user) {
     return (
       <div className="min-h-screen bg-background">
-        {activeTab === 'feed' && <Feed onPostClick={() => {}} />}
-        {activeTab === 'dark-desire' && <DarkDesire />}
+        {activeTab === 'feed' && <Feed onPostClick={() => {}} onLogout={signOut} />}
+        {activeTab === 'dark-desire' && <DarkDesire onLogout={signOut} />}
         {activeTab === 'blind-date' && <BlindDate />}
         {activeTab === 'matching' && <Matching />}
         {activeTab === 'chatting' && <Chatting />}
