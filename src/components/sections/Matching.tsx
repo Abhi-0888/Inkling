@@ -33,11 +33,6 @@ export const Matching = () => {
       setCurrentIndex(0);
     } catch (error) {
       console.error('Error loading candidates:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load potential matches.",
-        variant: "destructive",
-      });
     } finally {
       setLoading(false);
     }
@@ -134,9 +129,9 @@ export const Matching = () => {
             </motion.div>
             
             <div className="space-y-2">
-              <h2 className="text-2xl font-bold">You've seen everyone!</h2>
+              <h2 className="text-2xl font-bold">No matches yet</h2>
               <p className="text-muted-foreground">
-                Check back later for new people to match with.
+                There are no new people to match with right now. Check back later!
               </p>
             </div>
 

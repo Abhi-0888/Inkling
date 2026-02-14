@@ -19,7 +19,7 @@ export const SignUpForm = ({ onHaveAccount }: SignUpFormProps) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
-  const [gender, setGender] = useState<'male' | 'female' | 'other'>('male');
+  const [gender, setGender] = useState<'male' | 'female' | ''>('');
   const [loading, setLoading] = useState(false);
   const [showVerification, setShowVerification] = useState(false);
   const { signUp } = useAuth();
@@ -41,6 +41,15 @@ export const SignUpForm = ({ onHaveAccount }: SignUpFormProps) => {
       toast({
         title: "Display name required",
         description: "Please enter a display name",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!gender) {
+      toast({
+        title: "Gender required",
+        description: "Please select your gender to continue",
         variant: "destructive"
       });
       return;
@@ -137,14 +146,13 @@ export const SignUpForm = ({ onHaveAccount }: SignUpFormProps) => {
 
             <div className="space-y-2">
               <Label htmlFor="gender">Gender</Label>
-              <Select value={gender} onValueChange={(value: 'male' | 'female' | 'other') => setGender(value)}>
+              <Select value={gender} onValueChange={(value: 'male' | 'female') => setGender(value)}>
                 <SelectTrigger id="gender">
                   <SelectValue placeholder="Select gender" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="male">Male</SelectItem>
                   <SelectItem value="female">Female</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -51,7 +51,7 @@ export const matchingService = {
   async getCandidates(): Promise<MatchCandidate[]> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      if (!user) return [];
 
       // Get current user's gender and verification status
       const { data: currentUser } = await supabase
@@ -61,21 +61,19 @@ export const matchingService = {
         .maybeSingle();
 
       if (!currentUser) {
-        throw new Error('User profile not found');
+        console.warn('User profile not found yet');
+        return [];
       }
 
       if (currentUser.verification_status !== 'verified') {
-        throw new Error('Please complete identity verification first');
+        return [];
       }
 
       if (!currentUser?.gender) {
-        throw new Error('Please set your gender in profile settings first');
+        return [];
       }
 
       // Browse all other verified users (no gender filter)
-      // Note: RLS only lets verified users view verified profiles
-      // Keeping exclusion of self and already matched below
-      
       // Get users excluding current user and already matched users
       const { data: existingMatches } = await supabase
         .from('matches')
@@ -96,23 +94,16 @@ export const matchingService = {
 
       if (error) {
         console.error('Error querying users:', error);
-        throw error;
+        return [];
       }
 
       // Filter out already matched users
       const availableUsers = (users || []).filter(u => !matchedUserIds.has(u.id));
 
-      if (availableUsers.length === 0) {
-        console.log('No available users found');
-      }
-
       // Return candidates with real user information
       return availableUsers.map((user, index) => {
-        // Deterministic avatar generation based on ID char code sum
         const idSum = user.id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
         const colorIndex = idSum % AVATAR_COLORS.length;
-        
-        // Random prompt selection
         const promptIndex = (idSum + index) % PROMPTS.length;
 
         return {
@@ -124,18 +115,18 @@ export const matchingService = {
           interests: ['Music', 'Travel', 'Food', 'Books', 'Movies', 'Gym', 'Art', 'Coding'].sort(() => 0.5 - Math.random()).slice(0, 3),
           grad_year: 2024 + Math.floor(Math.random() * 4),
           avatar_color: AVATAR_COLORS[colorIndex],
-          avatar_icon: 'user', // We can map this to actual icons in the UI component
+          avatar_icon: 'user',
           prompts: [
             {
               question: PROMPTS[promptIndex],
-              answer: "Ask me about this! 🤫" // Placeholder answer
+              answer: "Ask me about this! 🤫"
             }
           ]
         };
       });
     } catch (error) {
       console.error('Error fetching candidates:', error);
-      throw error;
+      return [];
     }
   },
 
