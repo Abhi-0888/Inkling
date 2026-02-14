@@ -70,7 +70,7 @@ export const postService = {
       if (error) throw error;
 
       const postIds = (posts || []).map(p => p.id);
-      
+
       // Get reactions count for each post
       const { data: reactions } = await supabase
         .from('reactions')
@@ -118,6 +118,10 @@ export const postService = {
         throw error;
       }
 
+      // Extract hashtags from content
+      const hashtagMatches = content.match(/#\w+/g) || [];
+      const hashtags = hashtagMatches.map(tag => tag.slice(1).toLowerCase()); // Remove # and normalize
+
       const { data, error } = await supabase
         .from('posts')
         .insert({
@@ -126,7 +130,8 @@ export const postService = {
           content,
           images,
           visibility,
-          section
+          section,
+          hashtags
         })
         .select()
         .single();
@@ -159,7 +164,7 @@ export const postService = {
           .from('reactions')
           .delete()
           .eq('id', existingReaction.id);
-        
+
         if (error) throw error;
         return false;
       } else {
@@ -171,7 +176,7 @@ export const postService = {
             user_id: user.id,
             type: 'like'
           });
-        
+
         if (error) throw error;
         return true;
       }
@@ -251,7 +256,7 @@ export const postService = {
       if (error) throw error;
 
       const postIds = (posts || []).map(p => p.id);
-      
+
       // Get reactions count for each post
       const { data: reactions } = await supabase
         .from('reactions')

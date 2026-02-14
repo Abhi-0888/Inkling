@@ -47,7 +47,7 @@ export const DarkDesire = ({ onShowProfile }: DarkDesireProps) => {
 
   const fetchPosts = async () => {
     if (!userProfile) return;
-    
+
     setLoading(true);
     try {
       const fetchedPosts = await postService.getDarkDesirePosts();
@@ -76,13 +76,13 @@ export const DarkDesire = ({ onShowProfile }: DarkDesireProps) => {
   const handleLike = async (postId: string) => {
     try {
       const newLikeState = await postService.toggleLike(postId);
-      setPosts(posts.map(post => 
-        post.id === postId 
-          ? { 
-              ...post, 
-              user_has_liked: newLikeState,
-              like_count: newLikeState ? post.like_count + 1 : post.like_count - 1
-            }
+      setPosts(posts.map(post =>
+        post.id === postId
+          ? {
+            ...post,
+            user_has_liked: newLikeState,
+            like_count: newLikeState ? post.like_count + 1 : post.like_count - 1
+          }
           : post
       ));
     } catch (error) {
@@ -104,15 +104,32 @@ export const DarkDesire = ({ onShowProfile }: DarkDesireProps) => {
     { icon: "👀", label: "Looking" },
   ];
 
-  const [myVibe, setMyVibe] = useState<string | null>(localStorage.getItem('my_daily_vibe'));
+  // Get vibe from userProfile
+  const currentVibe = userProfile?.current_vibe as { icon: string; label: string } | null;
 
-  const handleSetVibe = (vibe: string) => {
-    setMyVibe(vibe);
-    localStorage.setItem('my_daily_vibe', vibe);
-    toast({
-        title: `Vibe set: ${vibe}`,
+  const handleSetVibe = async (icon: string, label: string) => {
+    if (!userProfile) return;
+
+    try {
+      const { error } = await supabase
+        .from('users')
+        .update({ current_vibe: { icon, label } })
+        .eq('id', userProfile.id);
+
+      if (error) throw error;
+
+      toast({
+        title: `Vibe set: ${icon} ${label}`,
         description: "Your vibe has been updated for today.",
-    });
+      });
+    } catch (error) {
+      console.error('Error setting vibe:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update vibe. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const TRENDING_TOPICS = [
@@ -139,63 +156,67 @@ export const DarkDesire = ({ onShowProfile }: DarkDesireProps) => {
       <div className="pt-4 px-4 pb-2">
         <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">What's your vibe today?</h3>
         <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
-            {VIBES.map((v) => (
-                <button 
-                    key={v.label}
-                    onClick={() => handleSetVibe(v.label)}
-                    className={`flex flex-col items-center gap-1 min-w-[60px] p-2 rounded-xl transition-all ${myVibe === v.label ? 'bg-primary/10 scale-105 ring-2 ring-primary/20' : 'hover:bg-muted/50 grayscale hover:grayscale-0'}`}
-                >
-                    <span className="text-2xl filter drop-shadow-sm">{v.icon}</span>
-                    <span className="text-[10px] font-medium">{v.label}</span>
-                </button>
-            ))}
+          {VIBES.map((v) => (
+            <button
+              key={v.label}
+              onClick={() => handleSetVibe(v.icon, v.label)}
+              className={`flex flex-col items-center gap-1 min-w-[60px] p-2 rounded-xl transition-all ${currentVibe?.label === v.label ? 'bg-primary/10 scale-105 ring-2 ring-primary/20' : 'hover:bg-muted/50 grayscale hover:grayscale-0'}`}
+            >
+              <span className="text-2xl filter drop-shadow-sm">{v.icon}</span>
+              <span className="text-[10px] font-medium">{v.label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
       {/* Trending Topics Rail */}
       <div className="px-4 py-2">
-         <div className="flex items-center gap-2 mb-2">
-             <TrendingUp className="h-3 w-3 text-primary" />
-             <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Trending Now</span>
-         </div>
-         <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-             {TRENDING_TOPICS.map((topic, i) => (
-                 <div key={i} className="flex-shrink-0 bg-secondary/50 hover:bg-secondary border border-border/50 rounded-full px-3 py-1.5 flex items-center gap-2 cursor-pointer transition-colors">
-                     <span className="text-xs font-semibold text-foreground">{topic.tag}</span>
-                     <span className="text-[10px] text-muted-foreground">{topic.count}</span>
-                 </div>
-             ))}
-         </div>
+        <div className="flex items-center gap-2 mb-2">
+          <TrendingUp className="h-3 w-3 text-primary" />
+          <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Trending Now</span>
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+          {TRENDING_TOPICS.map((topic, i) => (
+            <div
+              key={i}
+              className="flex-shrink-0 bg-secondary/50 hover:bg-secondary border border-border/50 rounded-full px-3 py-1.5 flex items-center gap-2 cursor-pointer transition-colors"
+              onClick={() => window.location.href = `/hashtag/${topic.tag.slice(1)}`}
+            >
+              <span className="text-xs font-semibold text-foreground">{topic.tag}</span>
+              <span className="text-[10px] text-muted-foreground">{topic.count}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Intro & Action */}
       <div className="px-4 py-2 space-y-4">
-          <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden group cursor-pointer" onClick={() => setShowComposer(true)}>
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl group-hover:bg-white/10 transition-colors"></div>
-            
-            <div className="relative z-10">
-                <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                        <div className="bg-white/10 p-1.5 rounded-lg backdrop-blur-sm">
-                            <Flame className="h-5 w-5 text-orange-500 fill-orange-500" />
-                        </div>
-                        <h2 className="font-bold text-lg">Dark Desire</h2>
-                    </div>
+        <div className="bg-gradient-to-br from-gray-900 to-gray-800 text-white p-5 rounded-2xl shadow-lg relative overflow-hidden group cursor-pointer" onClick={() => setShowComposer(true)}>
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-10 -mt-10 blur-2xl group-hover:bg-white/10 transition-colors"></div>
+
+          <div className="relative z-10">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <div className="bg-white/10 p-1.5 rounded-lg backdrop-blur-sm">
+                  <Flame className="h-5 w-5 text-orange-500 fill-orange-500" />
                 </div>
-                <p className="text-sm text-gray-300 mb-4 max-w-[80%]">
-                    Share your deepest secrets anonymously. No judgment, just relief.
-                </p>
-                <Button
-                  size="sm"
-                  className="bg-white text-black hover:bg-white/90 font-semibold w-full sm:w-auto"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Confess a Secret
-                </Button>
+                <h2 className="font-bold text-lg">Dark Desire</h2>
+              </div>
             </div>
+            <p className="text-sm text-gray-300 mb-4 max-w-[80%]">
+              Share your deepest secrets anonymously. No judgment, just relief.
+            </p>
+            <Button
+              size="sm"
+              className="bg-white text-black hover:bg-white/90 font-semibold w-full sm:w-auto"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Confess a Secret
+            </Button>
           </div>
-          
-          <DailyPoll />
+        </div>
+
+        <DailyPoll />
       </div>
 
       {/* Posts */}
@@ -208,7 +229,7 @@ export const DarkDesire = ({ onShowProfile }: DarkDesireProps) => {
               <p className="text-muted-foreground mb-4">
                 Be the first to share an anonymous confession
               </p>
-              <Button 
+              <Button
                 onClick={() => setShowComposer(true)}
                 className="bg-gradient-to-r from-destructive to-destructive/80"
               >
@@ -219,12 +240,12 @@ export const DarkDesire = ({ onShowProfile }: DarkDesireProps) => {
           ) : (
             <div className="space-y-4 p-4">
               {posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={post}
-                onLike={() => handleLike(post.id)}
-                onComment={(postId) => setSelectedPostId(postId)}
-              />
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onLike={() => handleLike(post.id)}
+                  onComment={(postId) => setSelectedPostId(postId)}
+                />
               ))}
             </div>
           )}

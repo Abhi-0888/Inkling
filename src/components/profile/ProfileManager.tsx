@@ -248,6 +248,17 @@ export const ProfileManager = ({ onClose }: ProfileManagerProps) => {
               </div>
             </div>
 
+            {/* Current Vibe Display */}
+            {userProfile.current_vibe && (
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground">Current Vibe</label>
+                <div className="flex items-center gap-2 p-2 bg-primary/5 border border-primary/20 rounded-lg">
+                  <span className="text-xl">{(userProfile.current_vibe as any).icon}</span>
+                  <span className="text-sm font-medium">{(userProfile.current_vibe as any).label}</span>
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <label className="text-xs text-muted-foreground">Profile Prompt</label>
               <Select value={promptQuestion} onValueChange={setPromptQuestion}>

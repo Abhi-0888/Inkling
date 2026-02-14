@@ -29,7 +29,7 @@ interface PostCardProps {
 const MAX_CONTENT_LENGTH = 280;
 
 // Helper function to render content with styled hashtags
-const renderContentWithHashtags = (text: string) => {
+const renderContentWithHashtags = (text: string, onHashtagClick?: (tag: string) => void) => {
   const parts = text.split(/(#\w+)/g);
   return parts.map((part, index) => {
     if (part.startsWith('#')) {
@@ -37,6 +37,12 @@ const renderContentWithHashtags = (text: string) => {
         <span
           key={index}
           className="text-primary font-medium hover:underline cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onHashtagClick) {
+              onHashtagClick(part.slice(1)); // Remove # before passing
+            }
+          }}
         >
           {part}
         </span>
@@ -171,7 +177,9 @@ export const PostCard = ({ post, onLike, onComment, onSecretLike }: PostCardProp
           {/* Content */}
           <div className="space-y-3">
             <p className="text-foreground leading-relaxed whitespace-pre-wrap">
-              {renderContentWithHashtags(displayContent)}
+              {renderContentWithHashtags(displayContent, (tag) => {
+                window.location.href = `/hashtag/${tag}`;
+              })}
             </p>
             {isLongContent && (
               <Button

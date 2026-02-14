@@ -277,6 +277,15 @@ export const Matching = () => {
                       {currentCandidate.gender && currentCandidate.grad_year && <span>•</span>}
                       {currentCandidate.grad_year && <span>Class of {currentCandidate.grad_year}</span>}
                     </div>
+                    {/* Vibe Badge */}
+                    {currentCandidate.current_vibe && (
+                      <div className="flex items-center justify-center gap-1.5 mt-2">
+                        <Badge variant="outline" className="bg-primary/5 border-primary/20 text-sm">
+                          <span className="mr-1">{(currentCandidate.current_vibe as any).icon}</span>
+                          {(currentCandidate.current_vibe as any).label}
+                        </Badge>
+                      </div>
+                    )}
                   </div>
                 </div>
 

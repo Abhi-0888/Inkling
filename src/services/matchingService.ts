@@ -12,6 +12,7 @@ export interface MatchCandidate {
   prompts?: { question: string; answer: string }[];
   verification_status?: string;
   unpopular_opinion?: string;
+  current_vibe?: { icon: string; label: string } | null;
 }
 
 export interface Match {
@@ -128,6 +129,7 @@ export const matchingService = {
           avatar_icon: 'user',
           unpopular_opinion: user.unpopular_opinion || undefined,
           prompts: user.unpopular_opinion ? [{ question: "My unpopular opinion is...", answer: user.unpopular_opinion }] : undefined,
+          current_vibe: user.current_vibe || null,
         };
       });
     } catch (error) {
