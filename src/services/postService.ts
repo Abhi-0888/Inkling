@@ -1,6 +1,34 @@
-import { supabase } from '@/lib/supabase';
-import { Post, Reaction, Comment } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { z } from 'zod';
+
+// Local type definitions
+interface Post {
+  id: string;
+  author_id: string | null;
+  section: string;
+  kind: string;
+  content: string;
+  images: string[] | null;
+  poll_options: any;
+  visibility: string;
+  created_at: string;
+}
+
+interface Reaction {
+  id: string;
+  post_id: string | null;
+  user_id: string | null;
+  type: string;
+  created_at: string;
+}
+
+interface Comment {
+  id: string;
+  post_id: string | null;
+  user_id: string | null;
+  content: string;
+  created_at: string;
+}
 
 const postSchema = z.object({
   content: z.string()

@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface MatchCandidate {
   id: string;
@@ -86,6 +86,7 @@ export const matchingService = {
         (existingMatches || []).flatMap(m => [m.user_a_id, m.user_b_id]).filter(id => id !== user.id)
       );
 
+      // Query users table - RLS restricts access appropriately
       const { data: users, error } = await supabase
         .from('users')
         .select('id, display_name, gender, verification_status')
@@ -330,8 +331,8 @@ export const matchingService = {
       console.error('Error fetching messages:', error);
       return [];
     }
-  }
-,
+  },
+
   async getLikesReceived(): Promise<MatchCandidate[]> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
