@@ -8,10 +8,32 @@ import { Upload, FileText, Shield } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/lib/supabase';
+import { z } from 'zod';
 
 interface IdentityVerificationFormProps {
   onVerificationSubmitted: () => void;
 }
+
+const identitySchema = z.object({
+  fullName: z.string()
+    .min(2, "Full name must be at least 2 characters")
+    .max(100, "Full name must be less than 100 characters")
+    .regex(/^[a-zA-Z\s'-]+$/, "Full name can only contain letters, spaces, hyphens, and apostrophes"),
+  phoneNumber: z.string()
+    .regex(/^\+?[1-9]\d{1,14}$/, "Please enter a valid phone number with country code"),
+  dateOfBirth: z.string()
+    .refine(date => {
+      const dob = new Date(date);
+      const age = (Date.now() - dob.getTime()) / 31557600000;
+      return age >= 18 && age <= 120;
+    }, "You must be at least 18 years old"),
+  address: z.string()
+    .min(10, "Address must be at least 10 characters")
+    .max(500, "Address must be less than 500 characters")
+});
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/jpg"];
 
 export const IdentityVerificationForm = ({ onVerificationSubmitted }: IdentityVerificationFormProps) => {
   const [fullName, setFullName] = useState('');
@@ -21,10 +43,31 @@ export const IdentityVerificationForm = ({ onVerificationSubmitted }: IdentityVe
   const [idCardFront, setIdCardFront] = useState<File | null>(null);
   const [idCardBack, setIdCardBack] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const { user } = useAuth();
   const { toast } = useToast();
 
   const handleFileChange = (type: 'front' | 'back', file: File | null) => {
+    if (file) {
+      // Validate file
+      if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload a JPEG or PNG image",
+          variant: "destructive",
+        });
+        return;
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        toast({
+          title: "File too large",
+          description: "Image must be less than 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
     if (type === 'front') {
       setIdCardFront(file);
     } else {
@@ -46,17 +89,51 @@ export const IdentityVerificationForm = ({ onVerificationSubmitted }: IdentityVe
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
     
-    if (!fullName || !phoneNumber || !dateOfBirth || !address || !idCardFront || !idCardBack) {
+    if (!user) {
       toast({
-        title: "All fields required",
-        description: "Please fill in all information and upload both ID card images",
-        variant: "destructive"
+        title: "Error",
+        description: "You must be logged in to submit verification",
+        variant: "destructive",
       });
       return;
     }
 
-    if (!user) return;
+    // Validate form data
+    try {
+      identitySchema.parse({
+        fullName,
+        phoneNumber,
+        dateOfBirth,
+        address
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        const fieldErrors: Record<string, string> = {};
+        error.errors.forEach(err => {
+          if (err.path[0]) {
+            fieldErrors[err.path[0].toString()] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
+        toast({
+          title: "Validation Error",
+          description: "Please check the form for errors",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    if (!idCardFront || !idCardBack) {
+      toast({
+        title: "Missing ID Card Images",
+        description: "Please upload both front and back images of your ID card",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setLoading(true);
     try {
@@ -138,7 +215,11 @@ export const IdentityVerificationForm = ({ onVerificationSubmitted }: IdentityVe
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   required
+                  className={errors.fullName ? "border-destructive" : ""}
                 />
+                {errors.fullName && (
+                  <p className="text-sm text-destructive">{errors.fullName}</p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -146,11 +227,15 @@ export const IdentityVerificationForm = ({ onVerificationSubmitted }: IdentityVe
                 <Input
                   id="phoneNumber"
                   type="tel"
-                  placeholder="+1 (555) 123-4567"
+                  placeholder="+1234567890"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
                   required
+                  className={errors.phoneNumber ? "border-destructive" : ""}
                 />
+                {errors.phoneNumber && (
+                  <p className="text-sm text-destructive">{errors.phoneNumber}</p>
+                )}
               </div>
             </div>
 
@@ -162,7 +247,11 @@ export const IdentityVerificationForm = ({ onVerificationSubmitted }: IdentityVe
                 value={dateOfBirth}
                 onChange={(e) => setDateOfBirth(e.target.value)}
                 required
+                className={errors.dateOfBirth ? "border-destructive" : ""}
               />
+              {errors.dateOfBirth && (
+                <p className="text-sm text-destructive">{errors.dateOfBirth}</p>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -173,7 +262,11 @@ export const IdentityVerificationForm = ({ onVerificationSubmitted }: IdentityVe
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 required
+                className={errors.address ? "border-destructive" : ""}
               />
+              {errors.address && (
+                <p className="text-sm text-destructive">{errors.address}</p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -182,7 +275,7 @@ export const IdentityVerificationForm = ({ onVerificationSubmitted }: IdentityVe
                 <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/jpg"
                     onChange={(e) => handleFileChange('front', e.target.files?.[0] || null)}
                     className="hidden"
                     id="idCardFront"
@@ -202,7 +295,7 @@ export const IdentityVerificationForm = ({ onVerificationSubmitted }: IdentityVe
                 <div className="border-2 border-dashed border-border rounded-lg p-4 text-center">
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/jpg"
                     onChange={(e) => handleFileChange('back', e.target.files?.[0] || null)}
                     className="hidden"
                     id="idCardBack"

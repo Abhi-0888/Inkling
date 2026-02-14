@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "npm:resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
@@ -22,8 +23,32 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Get auth token
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      throw new Error("Missing authorization header");
+    }
+
+    // Create Supabase client
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    // Verify user is authenticated
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error("Unauthorized");
+    }
+
     const { email, fullName }: VerificationEmailRequest = await req.json();
     console.log('Processing verification email for:', email);
+
+    // Verify the email matches the authenticated user's email
+    if (user.email !== email) {
+      throw new Error("Email mismatch - can only send verification to your own email");
+    }
 
     const emailResponse = await resend.emails.send({
       from: "Inkling <onboarding@resend.dev>",

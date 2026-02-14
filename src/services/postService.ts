@@ -1,5 +1,20 @@
 import { supabase } from '@/lib/supabase';
 import { Post, Reaction, Comment } from '@/lib/supabase';
+import { z } from 'zod';
+
+const postSchema = z.object({
+  content: z.string()
+    .min(1, "Content cannot be empty")
+    .max(5000, "Content must be less than 5000 characters")
+    .trim(),
+});
+
+const commentSchema = z.object({
+  content: z.string()
+    .min(1, "Comment cannot be empty")
+    .max(1000, "Comment must be less than 1000 characters")
+    .trim(),
+});
 
 export interface PostWithStats extends Post {
   like_count: number;
@@ -72,7 +87,15 @@ export const postService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // User is authenticated, proceed with post creation
+      // Validate content
+      try {
+        postSchema.parse({ content });
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          throw new Error(error.errors[0].message);
+        }
+        throw error;
+      }
 
       const { data, error } = await supabase
         .from('posts')
@@ -141,6 +164,16 @@ export const postService = {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
+
+      // Validate content
+      try {
+        commentSchema.parse({ content });
+      } catch (error) {
+        if (error instanceof z.ZodError) {
+          throw new Error(error.errors[0].message);
+        }
+        throw error;
+      }
 
       const { data, error } = await supabase
         .from('comments')
