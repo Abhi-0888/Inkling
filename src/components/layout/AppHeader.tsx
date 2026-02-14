@@ -7,9 +7,10 @@ import { Link } from 'react-router-dom';
 interface AppHeaderProps {
   onShowProfile: () => void;
   activeTab?: string;
+  onTabChange?: (tab: string) => void;
 }
 
-export const AppHeader = ({ onShowProfile, activeTab }: AppHeaderProps) => {
+export const AppHeader = ({ onShowProfile, activeTab, onTabChange }: AppHeaderProps) => {
   const { isModerator } = useAdmin();
 
   const getTitle = () => {
@@ -46,7 +47,7 @@ export const AppHeader = ({ onShowProfile, activeTab }: AppHeaderProps) => {
               </Button>
             </Link>
           )}
-          <NotificationBell />
+          <NotificationBell onNavigate={onTabChange} />
           <Button 
             variant="ghost" 
             size="icon" 

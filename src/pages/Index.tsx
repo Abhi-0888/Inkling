@@ -53,7 +53,7 @@ const Index = () => {
 
     return (
       <div className="min-h-screen bg-background">
-        <AppHeader activeTab={activeTab} onShowProfile={() => setShowProfile(true)} />
+        <AppHeader activeTab={activeTab} onShowProfile={() => setShowProfile(true)} onTabChange={setActiveTab} />
         <div className="pt-14">
           {activeTab === 'feed' && <Feed onPostClick={() => {}} onShowProfile={() => setShowProfile(true)} />}
           {activeTab === 'dark-desire' && <DarkDesire onShowProfile={() => setShowProfile(true)} />}

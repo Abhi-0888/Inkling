@@ -19,7 +19,11 @@ interface Notification {
   created_at: string;
 }
 
-export const NotificationBell = () => {
+interface NotificationBellProps {
+  onNavigate?: (tab: string) => void;
+}
+
+export const NotificationBell = ({ onNavigate }: NotificationBellProps) => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -191,8 +195,20 @@ export const NotificationBell = () => {
                 <NotificationItem
                   key={notification.id}
                   notification={notification}
-                  onMarkAsRead={markAsRead}
+                  onMarkAsRead={(notificationId) => {
+                    // Optimistically update UI for better UX, like markAllAsRead does.
+                    const targetNotification = notifications.find(n => n.id === notificationId);
+                    if (targetNotification && !targetNotification.read) {
+                      setNotifications(prev =>
+                        prev.map(n => (n.id === notificationId ? { ...n, read: true } : n))
+                      );
+                      setUnreadCount(prev => Math.max(0, prev - 1));
+                    }
+                    // Then update the database.
+                    markAsRead(notificationId);
+                  }}
                   onClose={() => setOpen(false)}
+                  onNavigate={onNavigate}
                 />
               ))}
             </div>
