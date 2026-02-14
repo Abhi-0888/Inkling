@@ -38,6 +38,7 @@ export const PostCard = ({ post, onLike, onComment, onSecretLike }: PostCardProp
   const [showReportDialog, setShowReportDialog] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isLikeAnimating, setIsLikeAnimating] = useState(false);
+  const [isDoubleTapAnimating, setIsDoubleTapAnimating] = useState(false);
   const { userProfile } = useAuth();
   const { toast } = useToast();
 
@@ -49,10 +50,27 @@ export const PostCard = ({ post, onLike, onComment, onSecretLike }: PostCardProp
     ? post.content.slice(0, MAX_CONTENT_LENGTH) + '...'
     : post.content;
 
+  // Determine gradient based on content length or random factor for visual variety
+  const getGradientClass = () => {
+    const len = post.content.length;
+    if (len < 50) return "bg-gradient-to-br from-pink-500/10 to-rose-500/5 border-pink-500/20";
+    if (len > 200) return "bg-gradient-to-br from-blue-500/10 to-cyan-500/5 border-blue-500/20";
+    if (post.images && post.images.length > 0) return "bg-gradient-to-br from-purple-500/10 to-indigo-500/5 border-purple-500/20";
+    return "bg-card/50";
+  };
+
   const handleLike = () => {
     setIsLikeAnimating(true);
     onLike(post.id);
     setTimeout(() => setIsLikeAnimating(false), 300);
+  };
+
+  const handleDoubleTap = () => {
+    if (!isLiked) {
+      handleLike();
+    }
+    setIsDoubleTapAnimating(true);
+    setTimeout(() => setIsDoubleTapAnimating(false), 800);
   };
 
   const handleSecretLike = () => {
@@ -68,8 +86,21 @@ export const PostCard = ({ post, onLike, onComment, onSecretLike }: PostCardProp
 
   return (
     <>
-      <Card className="border-0 shadow-sm bg-card/50 backdrop-blur-sm hover:shadow-md transition-all duration-300 animate-fade-in group">
-        <CardContent className="p-4 space-y-3">
+      <Card 
+        className={cn(
+            "border shadow-sm backdrop-blur-sm hover:shadow-md transition-all duration-300 animate-fade-in group relative overflow-hidden",
+            getGradientClass()
+        )}
+        onDoubleClick={handleDoubleTap}
+      >
+        {/* Double Tap Heart Animation Overlay */}
+        {isDoubleTapAnimating && (
+            <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
+                <Heart className="w-24 h-24 text-red-500 fill-current animate-ping" />
+            </div>
+        )}
+
+        <CardContent className="p-4 space-y-3 relative z-10">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">

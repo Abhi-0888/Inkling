@@ -4,7 +4,7 @@ import { PostCard } from '@/components/feed/PostCard';
 import { PostComposer } from '@/components/feed/PostComposer';
 import { CommentsDialog } from '@/components/feed/CommentsDialog';
 import { Button } from '@/components/ui/button';
-import { Plus, Flame } from 'lucide-react';
+import { Plus, Flame, TrendingUp } from 'lucide-react';
 import { postService, PostWithStats } from '@/services/postService';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -115,6 +115,14 @@ export const DarkDesire = ({ onShowProfile }: DarkDesireProps) => {
     });
   };
 
+  const TRENDING_TOPICS = [
+    { tag: "#CampusCrush", count: "2.4k" },
+    { tag: "#ExamStress", count: "1.8k" },
+    { tag: "#Confession", count: "5.2k" },
+    { tag: "#MissedConnection", count: "900" },
+    { tag: "#NightThoughts", count: "1.2k" },
+  ];
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background pb-20">
@@ -142,6 +150,22 @@ export const DarkDesire = ({ onShowProfile }: DarkDesireProps) => {
                 </button>
             ))}
         </div>
+      </div>
+
+      {/* Trending Topics Rail */}
+      <div className="px-4 py-2">
+         <div className="flex items-center gap-2 mb-2">
+             <TrendingUp className="h-3 w-3 text-primary" />
+             <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Trending Now</span>
+         </div>
+         <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+             {TRENDING_TOPICS.map((topic, i) => (
+                 <div key={i} className="flex-shrink-0 bg-secondary/50 hover:bg-secondary border border-border/50 rounded-full px-3 py-1.5 flex items-center gap-2 cursor-pointer transition-colors">
+                     <span className="text-xs font-semibold text-foreground">{topic.tag}</span>
+                     <span className="text-[10px] text-muted-foreground">{topic.count}</span>
+                 </div>
+             ))}
+         </div>
       </div>
 
       {/* Intro & Action */}
