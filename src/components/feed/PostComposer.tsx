@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Image, Globe, School, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
+import { postService } from '@/services/postService';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface PostComposerProps {
@@ -44,18 +44,7 @@ export const PostComposer = ({
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('posts')
-        .insert({
-          author_id: userProfile.id,
-          institute_id: userProfile.institute_id,
-          kind: 'text',
-          content: content.trim(),
-          visibility,
-          section,
-        });
-
-      if (error) throw error;
+      await postService.createPost(content.trim(), section);
 
       toast({
         title: "Posted successfully",

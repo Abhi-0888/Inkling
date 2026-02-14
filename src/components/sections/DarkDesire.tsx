@@ -135,18 +135,17 @@ export const DarkDesire = () => {
         ) : (
           <div className="space-y-4 p-4">
             {posts.map((post) => (
-              <PostCard
-                key={post.id}
-                post={{
-                  ...post,
-                  reactions: [],
-                  comments_count: post.comment_count
-                }}
-                onLike={() => handleLike(post.id)}
-                onComment={() => {}}
-                onSecretLike={() => {}}
-                showSecretLike={false}
-              />
+            <PostCard
+              key={post.id}
+              post={{
+                ...post,
+                reactions: [],
+                comments_count: post.comment_count
+              }}
+              onLike={() => handleLike(post.id)}
+              onComment={() => {}}
+              onSecretLike={() => {}}
+            />
             ))}
           </div>
         )}
