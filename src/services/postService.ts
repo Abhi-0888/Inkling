@@ -33,6 +33,7 @@ export const postService = {
         .from('posts')
         .select(`
           *,
+          author:users!posts_author_id_fkey(display_name),
           reactions!inner(count),
           comments!inner(count)
         `)

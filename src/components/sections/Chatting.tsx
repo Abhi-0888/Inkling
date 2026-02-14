@@ -6,6 +6,7 @@ import { MessageCircle, Heart, Users, ArrowRight } from 'lucide-react';
 import { matchingService, Match } from '@/services/matchingService';
 import { ChatWindow } from '@/components/chat/ChatWindow';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export const Chatting = () => {
   const { user } = useAuth();
@@ -15,7 +16,21 @@ export const Chatting = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadMatches();
+    if (user) {
+      loadMatches();
+    }
+    
+    // Set up real-time subscription for new matches
+    const channel = supabase
+      .channel('matches-changes')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'matches' }, () => {
+        loadMatches();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   const loadMatches = async () => {
