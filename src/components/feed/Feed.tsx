@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Sparkles, TrendingUp } from 'lucide-react';
 import { PostCard } from './PostCard';
 import { PostComposer } from './PostComposer';
+import { CommentsDialog } from './CommentsDialog';
 import { postService, PostWithStats } from '@/services/postService';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,7 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import { VerificationGate } from '@/components/common/VerificationGate';
 
 interface FeedProps {
-  onPostClick: (postId: string) => void;
+  onPostClick?: (postId: string) => void;
   onShowProfile: () => void;
 }
 
@@ -19,6 +20,7 @@ export const Feed = ({ onPostClick, onShowProfile }: FeedProps) => {
   const [posts, setPosts] = useState<PostWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [showComposer, setShowComposer] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('foryou');
   const { user } = useAuth();
   const { toast } = useToast();
@@ -211,13 +213,9 @@ export const Feed = ({ onPostClick, onShowProfile }: FeedProps) => {
                   posts.map(post => (
                     <PostCard
                       key={post.id}
-                      post={{
-                        ...post,
-                        reactions: [],
-                        comments_count: post.comment_count
-                      }}
+                      post={post}
                       onLike={() => handleLike(post.id)}
-                      onComment={onPostClick}
+                      onComment={(postId) => setSelectedPostId(postId)}
                       onSecretLike={() => handleSecretLike(post.id)}
                     />
                   ))
@@ -234,6 +232,15 @@ export const Feed = ({ onPostClick, onShowProfile }: FeedProps) => {
           onClose={() => setShowComposer(false)}
           onPostCreated={fetchPosts}
           section="feed"
+        />
+      )}
+
+      {/* Comments Dialog */}
+      {selectedPostId && (
+        <CommentsDialog
+          postId={selectedPostId}
+          isOpen={!!selectedPostId}
+          onClose={() => setSelectedPostId(null)}
         />
       )}
     </div>

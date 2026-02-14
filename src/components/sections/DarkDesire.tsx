@@ -2,9 +2,11 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { PostCard } from '@/components/feed/PostCard';
 import { PostComposer } from '@/components/feed/PostComposer';
+import { CommentsDialog } from '@/components/feed/CommentsDialog';
 import { Button } from '@/components/ui/button';
 import { Plus, Flame } from 'lucide-react';
 import { postService, PostWithStats } from '@/services/postService';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { VerificationGate } from '@/components/common/VerificationGate';
 
@@ -18,9 +20,28 @@ export const DarkDesire = ({ onShowProfile }: DarkDesireProps) => {
   const [posts, setPosts] = useState<PostWithStats[]>([]);
   const [loading, setLoading] = useState(true);
   const [showComposer, setShowComposer] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPosts();
+
+    // Set up real-time subscriptions
+    const channel = supabase
+      .channel('darkdesire-changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => {
+        fetchPosts();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reactions' }, () => {
+        fetchPosts();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'comments' }, () => {
+        fetchPosts();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [userProfile]);
 
   const fetchPosts = async () => {
@@ -153,13 +174,9 @@ export const DarkDesire = ({ onShowProfile }: DarkDesireProps) => {
               {posts.map((post) => (
               <PostCard
                 key={post.id}
-                post={{
-                  ...post,
-                  reactions: [],
-                  comments_count: post.comment_count
-                }}
+                post={post}
                 onLike={() => handleLike(post.id)}
-                onComment={() => {}}
+                onComment={(postId) => setSelectedPostId(postId)}
               />
               ))}
             </div>
@@ -175,6 +192,15 @@ export const DarkDesire = ({ onShowProfile }: DarkDesireProps) => {
           section="dark_desire"
           placeholder="Share your deepest thoughts anonymously..."
           title="Anonymous Confession"
+        />
+      )}
+
+      {/* Comments Dialog */}
+      {selectedPostId && (
+        <CommentsDialog
+          postId={selectedPostId}
+          isOpen={!!selectedPostId}
+          onClose={() => setSelectedPostId(null)}
         />
       )}
     </div>

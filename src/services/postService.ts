@@ -29,52 +29,44 @@ export const postService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      let query = supabase
+      const { data: posts, error } = await supabase
         .from('posts')
         .select(`
           *,
-          author:users!posts_author_id_fkey(display_name),
-          reactions!inner(count),
-          comments!inner(count)
+          author:users!posts_author_id_fkey(display_name)
         `)
+        .eq('section', 'feed')
         .order('created_at', { ascending: false })
         .range(offset, offset + limit - 1);
 
-      // Filter by visibility if needed
-      if (visibility === 'campus') {
-        query = query.eq('visibility', 'campus');
-      }
-      
-      // Filter by section (default to 'feed')
-      query = query.eq('section', 'feed');
-
-      const { data: posts, error } = await query;
-
       if (error) throw error;
 
-      // Get user's likes and reactions
       const postIds = (posts || []).map(p => p.id);
-      let userReactions: any[] = [];
       
-      if (postIds.length > 0) {
-        const { data: reactions } = await supabase
-          .from('reactions')
-          .select('post_id, type')
-          .eq('user_id', user.id)
-          .in('post_id', postIds);
-        
-        userReactions = reactions || [];
-      }
+      // Get reactions count for each post
+      const { data: reactions } = await supabase
+        .from('reactions')
+        .select('post_id, user_id, type')
+        .in('post_id', postIds);
+
+      // Get comments count for each post
+      const { data: comments } = await supabase
+        .from('comments')
+        .select('post_id')
+        .in('post_id', postIds);
 
       return (posts || []).map(post => {
-        const userReaction = userReactions.find(r => r.post_id === post.id);
+        const postReactions = reactions?.filter(r => r.post_id === post.id) || [];
+        const postComments = comments?.filter(c => c.post_id === post.id) || [];
+        const userReaction = postReactions.find(r => r.user_id === user.id);
+
         return {
           ...post,
           section: post.section as 'feed' | 'dark_desire',
-          like_count: Math.max(0, Math.floor(Math.random() * 50)), // TODO: Get actual count from aggregated reactions
-          comment_count: Math.max(0, Math.floor(Math.random() * 20)), // TODO: Get actual count from aggregated comments
+          like_count: postReactions.filter(r => r.type === 'like').length,
+          comment_count: postComments.length,
           user_has_liked: !!userReaction && userReaction.type === 'like',
-          user_has_secret_liked: false, // TODO: Check secret likes
+          user_has_secret_liked: false,
         };
       }) as PostWithStats[];
     } catch (error) {
@@ -194,11 +186,14 @@ export const postService = {
     }
   },
 
-  async getComments(postId: string): Promise<Comment[]> {
+  async getComments(postId: string): Promise<(Comment & { user?: { display_name: string } })[]> {
     try {
       const { data, error } = await supabase
         .from('comments')
-        .select('*')
+        .select(`
+          *,
+          user:users!comments_user_id_fkey(display_name)
+        `)
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
 
@@ -219,8 +214,7 @@ export const postService = {
         .from('posts')
         .select(`
           *,
-          reactions!inner(count),
-          comments!inner(count)
+          author:users!posts_author_id_fkey(display_name)
         `)
         .eq('section', 'dark_desire')
         .order('created_at', { ascending: false })
@@ -228,29 +222,32 @@ export const postService = {
 
       if (error) throw error;
 
-      // Get user's likes and reactions
       const postIds = (posts || []).map(p => p.id);
-      let userReactions: any[] = [];
       
-      if (postIds.length > 0) {
-        const { data: reactions } = await supabase
-          .from('reactions')
-          .select('post_id, type')
-          .eq('user_id', user.id)
-          .in('post_id', postIds);
-        
-        userReactions = reactions || [];
-      }
+      // Get reactions count for each post
+      const { data: reactions } = await supabase
+        .from('reactions')
+        .select('post_id, user_id, type')
+        .in('post_id', postIds);
+
+      // Get comments count for each post
+      const { data: comments } = await supabase
+        .from('comments')
+        .select('post_id')
+        .in('post_id', postIds);
 
       return (posts || []).map(post => {
-        const userReaction = userReactions.find(r => r.post_id === post.id);
+        const postReactions = reactions?.filter(r => r.post_id === post.id) || [];
+        const postComments = comments?.filter(c => c.post_id === post.id) || [];
+        const userReaction = postReactions.find(r => r.user_id === user.id);
+
         return {
           ...post,
           section: post.section as 'feed' | 'dark_desire',
-          like_count: Math.max(0, Math.floor(Math.random() * 30)), // TODO: Get actual count from aggregated reactions
-          comment_count: Math.max(0, Math.floor(Math.random() * 15)), // TODO: Get actual count from aggregated comments
+          like_count: postReactions.filter(r => r.type === 'like').length,
+          comment_count: postComments.length,
           user_has_liked: !!userReaction && userReaction.type === 'like',
-          user_has_secret_liked: false, // TODO: Check secret likes
+          user_has_secret_liked: false,
         };
       }) as PostWithStats[];
     } catch (error) {
