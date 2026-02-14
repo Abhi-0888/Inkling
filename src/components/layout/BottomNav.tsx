@@ -1,4 +1,4 @@
-import { Home, Heart, MessageCircle, Settings } from 'lucide-react';
+import { Home, Flame, Eye, Sparkles, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -10,9 +10,9 @@ interface BottomNavProps {
 export const BottomNav = ({ activeTab, onTabChange }: BottomNavProps) => {
   const tabs = [
     { id: 'feed', icon: Home, label: 'Feed' },
-    { id: 'dark-desire', icon: Heart, label: 'Dark' },
-    { id: 'blind-date', icon: MessageCircle, label: 'Blind' },
-    { id: 'matching', icon: Settings, label: 'Match' },
+    { id: 'dark-desire', icon: Flame, label: 'Dark' },
+    { id: 'blind-date', icon: Eye, label: 'Blind' },
+    { id: 'matching', icon: Sparkles, label: 'Match' },
     { id: 'chatting', icon: MessageCircle, label: 'Chat' },
   ];
 

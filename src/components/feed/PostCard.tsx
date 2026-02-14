@@ -17,7 +17,7 @@ interface PostCardProps {
   };
   onLike: (postId: string) => void;
   onComment: (postId: string) => void;
-  onSecretLike: (postId: string) => void;
+  onSecretLike?: (postId: string) => void;
 }
 
 export const PostCard = ({ post, onLike, onComment, onSecretLike }: PostCardProps) => {
@@ -29,12 +29,14 @@ export const PostCard = ({ post, onLike, onComment, onSecretLike }: PostCardProp
   const isLiked = !!post.user_reaction;
 
   const handleSecretLike = () => {
-    onSecretLike(post.id);
-    setShowSecretLike(false);
-    toast({
-      title: "Secret like sent! ✨",
-      description: "If they like you back, you'll match and can chat privately",
-    });
+    if (onSecretLike) {
+      onSecretLike(post.id);
+      setShowSecretLike(false);
+      toast({
+        title: "Secret like sent! ✨",
+        description: "If they like you back, you'll match and can chat privately",
+      });
+    }
   };
 
   return (
@@ -112,7 +114,7 @@ export const PostCard = ({ post, onLike, onComment, onSecretLike }: PostCardProp
             </Button>
           </div>
 
-          {userProfile?.id !== post.author_id && (
+          {onSecretLike && userProfile?.id !== post.author_id && (
             <div className="relative">
               <Button
                 variant="ghost"
