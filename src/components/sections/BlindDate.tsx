@@ -6,6 +6,7 @@ import { Eye, Heart, MessageCircle, Users, Clock } from 'lucide-react';
 import { blindDateService } from '@/services/blindDateService';
 import { ChatWindow } from '@/components/chat/ChatWindow';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
 
 interface BlindDateSession {
   id: string;
@@ -68,60 +69,85 @@ export const BlindDate = () => {
     setIsSearching(true);
     try {
       const session = await blindDateService.findMatch();
-      if (session) {
+      
+      if (session && session.user_a_id !== session.user_b_id) {
+        // Immediate match found
         setCurrentSession({
           ...session,
           status: 'active',
           expires_at: session.active_until
         });
+        setIsSearching(false);
         toast({
-          title: "Match found!",
+          title: "🎉 Match found!",
           description: "You've been paired with someone. Chat expires in 24 hours.",
         });
-      } else {
+      } else if (session) {
+        // Waiting for a match - set up real-time subscription
         toast({
           title: "Searching...",
-          description: "Looking for someone to chat with. Please wait.",
+          description: "Waiting for someone of opposite gender to join...",
         });
-        // Poll for match every 5 seconds
-        const pollInterval = setInterval(async () => {
-          const newSession = await blindDateService.getActiveSession();
-          if (newSession) {
-            setCurrentSession({
-              ...newSession,
-              status: 'active',
-              expires_at: newSession.active_until
-            });
-            setIsSearching(false);
-            clearInterval(pollInterval);
-            toast({
-              title: "Match found!",
-              description: "You've been paired with someone. Chat expires in 24 hours.",
-            });
-          }
-        }, 5000);
 
-        // Stop searching after 2 minutes
-        setTimeout(() => {
-          clearInterval(pollInterval);
+        // Subscribe to changes in the blind_dates table for this session
+        const channel = supabase
+          .channel(`blind-date-${session.id}`)
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'blind_dates',
+              filter: `id=eq.${session.id}`
+            },
+            (payload) => {
+              const updatedSession = payload.new as any;
+              // Check if a match was made (user_b_id changed from user_a_id)
+              if (updatedSession.user_b_id !== updatedSession.user_a_id) {
+                setCurrentSession({
+                  ...updatedSession,
+                  status: 'active',
+                  expires_at: updatedSession.active_until
+                });
+                setIsSearching(false);
+                supabase.removeChannel(channel);
+                toast({
+                  title: "🎉 Match found!",
+                  description: "You've been paired with someone. Chat expires in 24 hours.",
+                });
+              }
+            }
+          )
+          .subscribe();
+
+        // Clean up subscription if user cancels or timeout
+        const timeout = setTimeout(() => {
+          supabase.removeChannel(channel);
           setIsSearching(false);
+          // End the session if no match found
+          if (session) {
+            blindDateService.endSession(session.id);
+          }
           toast({
-            title: "No matches",
-            description: "No one available right now. Try again later!",
+            title: "Search timeout",
+            description: "No matches found. Try again later!",
           });
-        }, 120000);
+        }, 600000); // 10 minutes
+
+        // Store cleanup function
+        return () => {
+          clearTimeout(timeout);
+          supabase.removeChannel(channel);
+        };
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error starting blind date:', error);
+      setIsSearching(false);
       toast({
         title: "Error",
-        description: "Failed to start blind date. Please try again.",
+        description: error?.message || "Failed to start blind date. Please check your gender is set in profile.",
         variant: "destructive",
       });
-    } finally {
-      if (!currentSession) {
-        setIsSearching(false);
-      }
     }
   };
 
@@ -203,10 +229,16 @@ export const BlindDate = () => {
               <div className="space-y-4">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
                 <p className="text-sm text-muted-foreground">
-                  Searching for someone to chat with...
+                  Waiting for someone of opposite gender...
                 </p>
                 <Button 
-                  onClick={() => setIsSearching(false)} 
+                  onClick={async () => {
+                    setIsSearching(false);
+                    const session = await blindDateService.getActiveSession();
+                    if (session && session.user_a_id === session.user_b_id) {
+                      await blindDateService.endSession(session.id);
+                    }
+                  }} 
                   variant="outline"
                   className="w-full"
                 >
