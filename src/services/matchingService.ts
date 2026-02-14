@@ -78,14 +78,16 @@ export const matchingService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // For now, simulate match behavior
-      // In a real app, you'd store the swipe and check for mutual likes
       if (direction === 'like') {
-        // 30% chance of getting a match
-        const isMatch = Math.random() < 0.3;
-        
-        if (isMatch) {
-          // Create a match record
+        // Check if the other user already liked this user (mutual match)
+        const { data: existingMatch } = await supabase
+          .from('matches')
+          .select('*')
+          .or(`and(user_a_id.eq.${candidateId},user_b_id.eq.${user.id}),and(user_a_id.eq.${user.id},user_b_id.eq.${candidateId})`)
+          .maybeSingle();
+
+        if (!existingMatch) {
+          // Create a new match - representing that current user liked the candidate
           const { error } = await supabase
             .from('matches')
             .insert({
@@ -93,8 +95,22 @@ export const matchingService = {
               user_b_id: candidateId
             });
           
-          if (error) throw error;
-          return true;
+          if (error) {
+            console.error('Error creating match:', error);
+            throw error;
+          }
+
+          // Check if candidate has also liked the current user (mutual match)
+          const { data: mutualMatch } = await supabase
+            .from('matches')
+            .select('*')
+            .eq('user_a_id', candidateId)
+            .eq('user_b_id', user.id)
+            .maybeSingle();
+
+          if (mutualMatch) {
+            return true; // It's a mutual match!
+          }
         }
       }
 
@@ -110,20 +126,45 @@ export const matchingService = {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { data: matches, error } = await supabase
+      // Get all matches where the user is involved
+      const { data: userMatches, error: matchesError } = await supabase
         .from('matches')
         .select('*')
         .or(`user_a_id.eq.${user.id},user_b_id.eq.${user.id}`)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (matchesError) throw matchesError;
 
-      return (matches || []).map(match => ({
-        ...match,
-        match_type: 'regular',
-        unread_count: 0,
-        last_message: 'Start your conversation...'
-      }));
+      // For each match, check if there's a mutual match (both users liked each other)
+      const mutualMatches: Match[] = [];
+      const processedPairs = new Set<string>();
+
+      for (const match of userMatches || []) {
+        const otherUserId = match.user_a_id === user.id ? match.user_b_id : match.user_a_id;
+        const pairKey = [user.id, otherUserId].sort().join('-');
+
+        if (processedPairs.has(pairKey)) continue;
+        processedPairs.add(pairKey);
+
+        // Check if there's a reverse match (mutual like)
+        const { data: reverseMatch } = await supabase
+          .from('matches')
+          .select('*')
+          .or(`and(user_a_id.eq.${otherUserId},user_b_id.eq.${user.id}),and(user_a_id.eq.${user.id},user_b_id.eq.${otherUserId})`)
+          .limit(2);
+
+        // If there are 2 matches (one in each direction), it's a mutual match
+        if (reverseMatch && reverseMatch.length >= 2) {
+          mutualMatches.push({
+            ...match,
+            match_type: 'swipe_match',
+            unread_count: 0,
+            last_message: 'Start your conversation...'
+          });
+        }
+      }
+
+      return mutualMatches;
     } catch (error) {
       console.error('Error fetching matches:', error);
       return [];
