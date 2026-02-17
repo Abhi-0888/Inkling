@@ -4,10 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Mail } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
-import { IdentityVerificationForm } from './IdentityVerificationForm';
 import { supabase } from '@/integrations/supabase/client';
 
 interface SignUpFormProps {
@@ -21,7 +20,7 @@ export const SignUpForm = ({ onHaveAccount }: SignUpFormProps) => {
   const [displayName, setDisplayName] = useState('');
   const [gender, setGender] = useState<'male' | 'female' | ''>('');
   const [loading, setLoading] = useState(false);
-  const [showVerification, setShowVerification] = useState(false);
+  const [showEmailVerification, setShowEmailVerification] = useState(false);
   const { signUp } = useAuth();
   const { toast } = useToast();
 
@@ -77,11 +76,8 @@ export const SignUpForm = ({ onHaveAccount }: SignUpFormProps) => {
           .eq('id', user.id);
       }
       
-      toast({
-        title: "Account created!",
-        description: "Now complete your identity verification to access all features.",
-      });
-      setShowVerification(true);
+      // Show email verification screen
+      setShowEmailVerification(true);
     } catch (error: any) {
       toast({
         title: "Sign up failed",
@@ -93,14 +89,37 @@ export const SignUpForm = ({ onHaveAccount }: SignUpFormProps) => {
     }
   };
 
-  if (showVerification) {
+  if (showEmailVerification) {
     return (
-      <IdentityVerificationForm 
-        onVerificationSubmitted={() => {
-          // User will be redirected to main app after verification is submitted
-          setShowVerification(false);
-        }}
-      />
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md shadow-lg border-0 bg-card/80 backdrop-blur-sm">
+          <CardHeader className="text-center space-y-4">
+            <div className="mx-auto w-16 h-16 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center">
+              <Mail className="h-8 w-8 text-primary-foreground" />
+            </div>
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Verify your email 📩
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p className="text-muted-foreground">
+              We've sent a verification link to <strong className="text-foreground">{email}</strong>.
+            </p>
+            <p className="text-muted-foreground">
+              Please verify your email to continue.
+            </p>
+            <div className="pt-4">
+              <Button
+                variant="outline"
+                onClick={onHaveAccount}
+                className="w-full"
+              >
+                Back to Sign In
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 

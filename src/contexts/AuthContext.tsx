@@ -10,6 +10,7 @@ interface AuthContextType {
   loading: boolean;
   isPasswordRecovery: boolean;
   clearPasswordRecovery: () => void;
+  refreshProfile: () => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -137,12 +138,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsPasswordRecovery(false);
   };
 
+  const refreshProfile = async () => {
+    if (user) {
+      await fetchUserProfile(user.id);
+    }
+  };
+
   const value = {
     user,
     userProfile,
     loading,
     isPasswordRecovery,
     clearPasswordRecovery,
+    refreshProfile,
     signUp,
     signIn,
     signOut,

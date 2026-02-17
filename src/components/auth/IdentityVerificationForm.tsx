@@ -44,8 +44,9 @@ export const IdentityVerificationForm = ({ onVerificationSubmitted }: IdentityVe
   const [idCardBack, setIdCardBack] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const { user } = useAuth();
+  const { user, userProfile, refreshProfile } = useAuth();
   const { toast } = useToast();
+  const isRejected = userProfile?.verification_status === 'rejected';
 
   const handleFileChange = (type: 'front' | 'back', file: File | null) => {
     if (file) {
@@ -176,6 +177,7 @@ export const IdentityVerificationForm = ({ onVerificationSubmitted }: IdentityVe
         description: "Your identity documents have been submitted for review. Check your email for details.",
       });
 
+      await refreshProfile();
       onVerificationSubmitted();
     } catch (error: any) {
       console.error('Verification submission error:', error);
@@ -200,7 +202,9 @@ export const IdentityVerificationForm = ({ onVerificationSubmitted }: IdentityVe
             Identity Verification
           </CardTitle>
           <p className="text-muted-foreground">
-            Complete your identity verification to access all features
+            {isRejected 
+              ? "Your previous verification was rejected. Please re-submit your documents."
+              : "Complete your identity verification to access all features"}
           </p>
         </CardHeader>
         <CardContent>
