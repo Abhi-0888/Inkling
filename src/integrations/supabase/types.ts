@@ -961,6 +961,7 @@ export type Database = {
           interests: string[] | null
           phone_number: string | null
           photo_verified: boolean | null
+          profile_completed: boolean | null
           university_id: string | null
           unpopular_opinion: string | null
           updated_at: string | null
@@ -991,6 +992,7 @@ export type Database = {
           interests?: string[] | null
           phone_number?: string | null
           photo_verified?: boolean | null
+          profile_completed?: boolean | null
           university_id?: string | null
           unpopular_opinion?: string | null
           updated_at?: string | null
@@ -1021,6 +1023,7 @@ export type Database = {
           interests?: string[] | null
           phone_number?: string | null
           photo_verified?: boolean | null
+          profile_completed?: boolean | null
           university_id?: string | null
           unpopular_opinion?: string | null
           updated_at?: string | null
@@ -1046,6 +1049,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_is_admin: { Args: { _user_id: string }; Returns: boolean }
       create_notification: {
         Args: {
           p_message: string
